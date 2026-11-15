@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physik 9 – Magnetfeld der Spule, Graphen und Induktion</title>
+<style>
+:root{
+  --ink:#1d2433; --muted:#5b6475; --bg:#f4f6fa; --card:#ffffff; --line:#dde3ec;
+  --navy:#16325c; --blue:#0b7bc1; --lightblue:#e3f2fc; --merk:#0a86c9;
+  --gold:#f5b301; --green:#1f9d55; --greenbg:#e7f7ee; --red:#d64545; --redbg:#fdeceb;
+  --orange:#e8762b; --orangebg:#fff3ea; --violet:#6b4fbb; --violetbg:#f1edfb;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:17px;line-height:1.55}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit}
+
+/* ---------- top bar ---------- */
+#topbar{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#topbar .row{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:8px 14px;flex-wrap:wrap}
+#topbar .title{font-weight:700;font-size:1.05rem;margin-right:auto}
+#topbar .title small{display:block;font-weight:400;opacity:.75;font-size:.78rem}
+.counter{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:20px;padding:4px 12px;font-weight:700;white-space:nowrap}
+.counter .big{font-size:1.15rem}
+#starCount.pop{animation:pop .5s}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.6)}100%{transform:scale(1)}}
+.tbtn{background:#fff;color:var(--navy);border:0;border-radius:8px;padding:6px 12px;font-weight:700}
+.tbtn.alt{background:var(--gold);color:#3a2a00}
+.tbtn:hover{filter:brightness(.95)}
+#tabs{max-width:1000px;margin:0 auto;display:flex;gap:4px;padding:0 14px;overflow-x:auto}
+#tabs button{background:transparent;color:#cfd9ea;border:0;border-bottom:3px solid transparent;padding:8px 12px;font-weight:600;white-space:nowrap}
+#tabs button.active{color:#fff;border-bottom-color:var(--gold)}
+#tabs button .tabstars{font-size:.8rem;opacity:.85;margin-left:4px}
+#unsaved{display:none;background:#fff4d6;color:#6b4b00;text-align:center;font-size:.85rem;padding:3px 8px}
+#unsaved.show{display:block}
+
+/* ---------- layout ---------- */
+main{max-width:1000px;margin:0 auto;padding:18px 14px 80px}
+.page{display:none}
+.page.active{display:block}
+h1{color:var(--navy);font-size:1.7rem;margin:.3em 0 .2em}
+h2{color:var(--navy);font-size:1.3rem;margin:1.6em 0 .5em;padding-bottom:4px;border-bottom:2px solid var(--line)}
+h3{color:var(--navy);font-size:1.08rem;margin:1.2em 0 .4em}
+.lead{color:var(--muted);font-size:1.02rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+.en{color:var(--muted);font-style:italic;font-size:.92em}
+.small{font-size:.88rem;color:var(--muted)}
+.center{text-align:center}
+.flex{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:720px){.grid2{grid-template-columns:1fr}}
+.pill{display:inline-block;background:var(--lightblue);color:var(--navy);border-radius:12px;padding:1px 9px;font-size:.85rem;font-weight:600}
+mark{background:#fff2b3;padding:0 2px;border-radius:3px}
+.kw{font-weight:700;color:var(--navy)}
+
+/* info boxes */
+.box{border-radius:10px;padding:12px 16px;margin:14px 0;border-left:6px solid}
+.box.info{background:#eef4ff;border-color:var(--blue)}
+.box.merke{background:#eef8ee;border-color:var(--green)}
+.box.warn{background:#fff6e5;border-color:var(--gold)}
+.box.material{background:var(--orangebg);border-color:var(--orange)}
+.box.history{background:#faf6ee;border-color:#a7834a;font-family:Georgia,"Times New Roman",serif;font-size:1.02rem}
+.box .boxtitle{font-weight:800;margin-bottom:4px}
+
+/* Heft sentence (book light blue) */
+.heft{background:var(--lightblue);border:2px dashed var(--merk);border-radius:12px;padding:14px 16px;margin:16px 0}
+.heft .htitle{font-weight:800;color:var(--merk);display:flex;gap:8px;align-items:center}
+.heft .htext{color:var(--merk);font-size:1.12rem;font-weight:600;margin:6px 0 10px;line-height:1.5}
+.heft label{display:flex;gap:8px;align-items:center;font-weight:600;cursor:pointer}
+.heft input{width:22px;height:22px}
+.heft.done{border-style:solid}
+
+/* vocabulary */
+.vocab{width:100%;border-collapse:collapse;margin:8px 0}
+.vocab th{background:var(--navy);color:#fff;text-align:left;padding:6px 10px;font-size:.9rem}
+.vocab td{padding:6px 10px;border-bottom:1px solid var(--line)}
+.vocab tr:nth-child(even) td{background:#f7f9fc}
+.vocab td.de{font-weight:700}
+.vocab.hide-en td.enc{color:transparent;background:#e9edf3 !important;cursor:pointer;border-radius:4px}
+.vocab.hide-en td.enc.peek{color:var(--ink)}
+.vocabtools{display:flex;gap:8px;justify-content:flex-end}
+.vbtn{background:#eef2f8;border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:.85rem}
+
+/* questions */
+.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px 12px;margin:16px 0;position:relative;box-shadow:0 1px 3px rgba(20,30,60,.05)}
+.q .qhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.q .qnum{background:var(--navy);color:#fff;border-radius:7px;padding:1px 8px;font-size:.8rem;font-weight:700}
+.q .qstar{margin-left:auto;font-size:1.4rem;filter:grayscale(1);opacity:.35}
+.q.solved .qstar{filter:none;opacity:1}
+.q.revealed .qstar{filter:grayscale(1);opacity:.25}
+.q .qtext{font-weight:600;margin-bottom:8px}
+.q.solved{border-color:var(--green);background:linear-gradient(0deg,#fbfffc,#fff)}
+.q.revealed{border-color:#b9c2d0}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opts.row{flex-direction:row;flex-wrap:wrap}
+.opt{display:flex;align-items:flex-start;gap:9px;border:2px solid var(--line);border-radius:10px;padding:8px 11px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s}
+.opt:hover{border-color:#a9bad3}
+.opt input{margin-top:5px;width:18px;height:18px;flex:none}
+.opt.sel{border-color:var(--blue);background:#f0f7fe}
+.opt.right{border-color:var(--green);background:var(--greenbg)}
+.opt.wrongsel{border-color:var(--red);background:var(--redbg)}
+.opts.graphs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.opts.graphs .opt{flex-direction:column;align-items:center}
+.qactions{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.check{background:var(--navy);color:#fff;border:0;border-radius:9px;padding:7px 16px;font-weight:700}
+.check:disabled{background:#9aa6b8;cursor:default}
+.reveal{background:#fff;border:1px solid #b9c2d0;color:var(--muted);border-radius:9px;padding:6px 12px;font-size:.88rem;display:none}
+.reveal.show{display:inline-block}
+.feedback{font-weight:600}
+.feedback.ok{color:var(--green)}
+.feedback.bad{color:var(--red)}
+.explain{display:none;margin-top:10px;background:#f6f8fb;border-radius:8px;padding:9px 12px;font-size:.95rem}
+.q.solved .explain,.q.revealed .explain{display:block}
+.hint{display:none;margin-top:8px;background:#fff8e1;border-radius:8px;padding:7px 12px;font-size:.93rem}
+.hint.show{display:block}
+.wrongtag{font-size:.8rem;color:var(--red);font-weight:600}
+.numrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.numrow input{width:130px;padding:6px 9px;border:2px solid var(--line);border-radius:8px}
+.numrow input.ok{border-color:var(--green);background:var(--greenbg)}
+.numrow input.bad{border-color:var(--red);background:var(--redbg)}
+.cloze select{padding:3px 6px;border:2px solid var(--line);border-radius:7px;background:#fff;margin:2px 0;font-weight:600}
+.cloze select.ok{border-color:var(--green);background:var(--greenbg)}
+.cloze select.bad{border-color:var(--red);background:var(--redbg)}
+.cloze .line{margin:6px 0}
+.matchrow{display:flex;align-items:center;gap:10px;margin:5px 0;flex-wrap:wrap}
+.matchrow .de{min-width:180px;font-weight:700}
+
+/* formula */
+.formula{display:inline-flex;align-items:center;gap:8px;font-family:"Cambria Math","Times New Roman",serif;font-size:1.5rem;background:#fff;border:2px solid var(--navy);border-radius:10px;padding:8px 18px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle}
+.frac>span:first-child{border-bottom:2px solid currentColor;padding:0 4px}
+.frac>span:last-child{padding:0 4px}
+.formula.small{font-size:1.1rem;padding:4px 10px;border-width:1px}
+
+/* sims */
+.sim{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:16px 0}
+.sim .simtitle{font-weight:800;color:var(--violet);margin-bottom:6px}
+.slider{display:grid;grid-template-columns:180px 1fr 90px;gap:10px;align-items:center;margin:4px 0}
+.slider input{width:100%}
+.slider output{font-weight:700;text-align:right}
+canvas{max-width:100%;touch-action:none;display:block;margin:0 auto}
+.simbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;justify-content:center}
+.simbtns button{background:var(--violetbg);border:1px solid #cfc4ef;color:var(--violet);border-radius:8px;padding:5px 12px;font-weight:600}
+.bigresult{font-size:1.4rem;font-weight:800;color:var(--navy)}
+
+/* training */
+.step{display:flex;gap:14px;align-items:flex-start;background:#fff;border:2px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.step .sn{flex:none;width:38px;height:38px;border-radius:50%;background:#d6deea;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.step.cur{border-color:var(--gold);box-shadow:0 0 0 4px #fff2c4}
+.step.cur .sn{background:var(--gold);color:#3a2a00}
+.step.ok{border-color:var(--green)}
+.step.ok .sn{background:var(--green)}
+.step .sbody{flex:1}
+.step h3{margin:.1em 0 .3em}
+.bigbtn{background:var(--navy);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700;font-size:1rem;margin:4px 6px 4px 0}
+.bigbtn.green{background:var(--green)}
+.bigbtn.red{background:var(--red)}
+.bigbtn.gray{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.bigbtn:disabled{opacity:.45;cursor:default}
+.starstage{font-size:4rem;text-align:center;min-height:5rem;letter-spacing:8px}
+.starstage .empty{filter:grayscale(1);opacity:.25}
+.trainbox{display:flex;gap:10px;align-items:center;font-size:1.15rem;font-weight:700;cursor:pointer}
+.trainbox input{width:28px;height:28px}
+input.name{padding:8px 12px;border:2px solid var(--line);border-radius:9px;width:min(340px,100%)}
+textarea.code{width:100%;min-height:80px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem;border:2px solid var(--line);border-radius:8px;padding:8px;word-break:break-all}
+
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(10,20,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:14px}
+#modal.show{display:flex}
+#modal .mbox{background:#fff;border-radius:14px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:20px 22px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+#modal h2{margin-top:0}
+#modal .mclose{float:right;background:none;border:0;font-size:1.5rem;line-height:1;color:var(--muted)}
+.method{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:10px 0}
+.method h3{margin:.1em 0 .3em}
+.okmsg{color:var(--green);font-weight:700}
+.errmsg{color:var(--red);font-weight:700}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;border-radius:12px;padding:10px 18px;font-weight:700;z-index:120;transition:transform .3s;max-width:90vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.flystar{position:fixed;font-size:2.2rem;z-index:130;pointer-events:none;transition:all .8s cubic-bezier(.5,-0.3,.6,1)}
+
+/* banner */
+#backupBanner{display:none;background:#fff4d6;border:1px solid #f0d27a;border-radius:10px;padding:10px 14px;margin:10px 0}
+#backupBanner.show{display:block}
+
+/* summary */
+table.sum{width:100%;border-collapse:collapse}
+table.sum th,table.sum td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+table.sum th{background:#eef2f8}
+table.sum td.n{text-align:center;font-weight:700}
+.bar{height:10px;background:#e7ebf2;border-radius:5px;overflow:hidden;min-width:80px}
+.bar>div{height:100%;background:var(--gold)}
+
+/* svg graphs */
+svg.graph{display:block;max-width:100%;height:auto;margin:0 auto}
+.graphwrap{text-align:center;margin:8px 0}
+.caption{font-size:.85rem;color:var(--muted);text-align:center}
+.fieldpics{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:center}
+.fieldpics .arrow{font-size:2rem;color:var(--muted)}
+.sessionnav{display:flex;justify-content:space-between;margin-top:30px}
+.toc{columns:2;column-gap:30px;margin:6px 0}
+@media (max-width:600px){.toc{columns:1}}
+.toc a{color:var(--blue);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+@media print{#topbar,#modal,#toast{display:none}.page{display:block}}
+
+/* ---------- online speichern ---------- */
+.cstat{font-size:.82rem;font-weight:700;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,.12);color:#e2e8f0;white-space:nowrap}
+.cstat:empty{display:none}
+.cstat.ok{color:#86efac}.cstat.busy,.cstat.foto{color:#fde68a}.cstat.off{color:#fca5a5}
+.cstat.big{font-size:1rem;background:var(--navy)}
+.cloud #tabs button[data-p="t"] .tabstars{display:none}
+.cloud .saveHint{display:none}
+.fs-ov{position:fixed;inset:0;background:rgba(15,23,42,.75);display:flex;align-items:flex-start;justify-content:center;z-index:400;padding:40px 16px;overflow:auto}
+.fs-box{background:#fff;border-radius:20px;padding:22px 24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.fs-box h2{margin:.1em 0 .3em;font-size:1.6rem;border:0;color:var(--navy)}
+.fs-sub{font-size:.88rem;color:var(--muted);font-weight:400}
+.fs-box label{display:block;font-weight:700;margin:12px 0 4px}
+.fs-box input{font-size:1.3rem;width:100%;border:2px solid #cbd5e1;border-radius:12px;padding:10px 12px}
+.fs-box input:focus{outline:none;border-color:var(--blue)}
+.fs-box .go{margin-top:16px;width:100%;font-size:1.2rem;padding:12px;border-radius:12px;border:0;background:var(--green);color:#fff;font-weight:800}
+.fs-box .go:disabled{opacity:.5}
+.fs-msg{margin-top:12px;font-weight:600;border-radius:10px;padding:8px 10px;display:none}
+.fs-msg.bad{display:block;background:var(--redbg);color:#9b1c1c}
+.fs-msg.info{display:block;background:#eef2ff;color:#3730a3}
+details summary{cursor:pointer}
+</style>
+</head>
+<body>
+<noscript>Bitte öffne diese Seite in einem Browser (Safari, Chrome, Edge) mit JavaScript.</noscript>
+<script>
+/* =====================================================================
+   Engine: state, stars, wrong answers, save / load, question widgets
+   ===================================================================== */
+/* ================= ☁️ Online speichern (Google Sheets + Drive) – Version 2 =================
+   Gleicher Baustein für alle Übungsseiten. Die Seite liefert:
+     app, titel, getState(), setState(st|null), getSummary(), onLogin(info), hasProgress()
+     optional: photos() → [{key, ph}]  (ph = {src, w, h, t, fid}),  onPhotos()
+   Server-Adresse: Link-Parameter ?s=<ID>  (oder STANDARD_ID unten eintragen).
+   Ohne Server-ID arbeitet die Seite wie früher nur auf dem Gerät.                           */
+const Cloud=(function(){
+  const STANDARD_ID='';           // optional: ID aus der Web-App-URL …/macros/s/<ID>/exec
+  const LOGIN_KEY='fs-login';
+  const TXT={ok:'☁️ Gespeichert',busy:'⏳ Speichert …',foto:'⏳ Foto wird hochgeladen …',off:'⚠️ Offline – wird später gespeichert',lokal:'💾 Nur auf diesem Gerät'};
+  const ERR={login:'Benutzername oder PIN ist falsch. Versuche es noch einmal.',
+    gesperrt:'Zu viele falsche Versuche. Warte 10 Minuten oder frag deine Lehrerin / deinen Lehrer.',
+    klasse:'Diese Seite ist für deine Klasse nicht freigeschaltet. Frag deine Lehrerin / deinen Lehrer.',
+    netz:'Keine Verbindung zum Internet. Prüfe das WLAN und versuche es noch einmal.',
+    server:'Der Server antwortet nicht richtig. Versuche es gleich noch einmal.'};
+  let C=null,login=null,server='',dirty=false,timer=null,sending=null,lastSent='',lastSendAt=0,suppress=false,status='',photoRun=null,photoFail=0;
+  const qs=new URLSearchParams(location.search);
+  const idOk=s=>/^[A-Za-z0-9_-]{20,}$/.test(s||'');
+  const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}};
+  const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+  const metaKey=()=>'fs-meta-'+C.app;
+  const meta=()=>lsGet(metaKey())||{};
+  const pageLink=()=>location.origin+location.pathname;
+  const photoList=()=>C.photos?C.photos().filter(p=>p.ph):[];
+  const photosPending=()=>photoList().some(p=>p.ph.src&&!p.ph.fid);
+
+  function setStatus(k){status=k;['cloudStatus','cloudStatus2'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=TXT[k]||'';e.className='cstat'+(id==='cloudStatus2'?' big ':' ')+k;}});}
+  function idle(){setStatus(dirty?'busy':photosPending()?(status==='off'?'off':'foto'):'ok');}
+  async function call(s,body,keep){
+    const txt=JSON.stringify(body);
+    const r=await fetch('https://script.google.com/macros/s/'+s+'/exec',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:txt,keepalive:!!keep&&txt.length<60000,redirect:'follow'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }
+  const base=()=>({u:login.u,p:login.p,app:C.app,titel:C.titel,link:pageLink()});
+
+  /* ---- Anmelde-Fenster ---- */
+  function showLogin(s,u,msg){
+    let ov=document.getElementById('fsLogin');if(ov)ov.remove();
+    ov=document.createElement('div');ov.id='fsLogin';ov.className='fs-ov';
+    ov.innerHTML=`<form class="fs-box" autocomplete="on"><h2>👋 Anmelden</h2>
+      <div class="fs-sub">${C.titel}</div>
+      <label for="fsU">Benutzername <span class="fs-sub">(user name)</span></label>
+      <input id="fsU" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="z. B. 9a-07">
+      <label for="fsP">PIN <span class="fs-sub">(secret number)</span></label>
+      <input id="fsP" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••">
+      <button class="go" type="submit">Los geht's ▶</button><div class="fs-msg" id="fsMsg"></div></form>`;
+    document.body.appendChild(ov);
+    const uI=ov.querySelector('#fsU'),pI=ov.querySelector('#fsP'),m=ov.querySelector('#fsMsg'),b=ov.querySelector('.go');
+    const say=(cls,t)=>{m.className='fs-msg '+cls;m.textContent=t;};
+    if(u)uI.value=u;if(msg)say('bad',msg);
+    setTimeout(()=>(u?pI:uI).focus(),50);
+    ov.querySelector('form').onsubmit=async e=>{e.preventDefault();
+      const cu=uI.value.trim().toLowerCase(),cp=pI.value.trim();
+      if(!cu||!cp){say('bad','Bitte Benutzername und PIN eingeben.');return;}
+      b.disabled=true;say('info','⏳ Einen Moment …');
+      try{const r=await call(s,{action:'login',u:cu,p:cp,app:C.app,titel:C.titel,link:pageLink()});
+        if(!r.ok){say('bad',ERR[r.err]||ERR.server);b.disabled=false;pI.value='';pI.focus();return;}
+        login={u:cu,p:cp,s,name:r.name||'',voll:r.voll||r.name||'',klasse:r.klasse||''};lsSet(LOGIN_KEY,login);
+        ov.remove();applyServer(r.data);C.onLogin(login);
+      }catch(err){say('bad',ERR.netz);b.disabled=false;}
+    };
+  }
+
+  /* ---- Abgleich Gerät ↔ Server: der neuere Stand gewinnt ---- */
+  function applyServer(d){
+    const m=meta();
+    let localT=m.t||0;
+    if(m.owner&&m.owner!==login.u){suppress=true;C.setState(null);suppress=false;localT=0;}  // Stand eines anderen Kindes vom Gerät entfernen
+    const serverT=(d&&d.state)?(d.t||0):-1;
+    if(serverT>localT||(serverT>=0&&serverT===localT&&!hasLocal())){
+      suppress=true;C.setState(d.state);suppress=false;
+      lsSet(metaKey(),{owner:login.u,t:serverT});lastSent=JSON.stringify(C.getState());dirty=false;
+    }else if(serverT>=0&&serverT===localT){
+      lsSet(metaKey(),{owner:login.u,t:localT});lastSent=JSON.stringify(C.getState());dirty=false;   // schon gleich
+    }else{
+      lsSet(metaKey(),{owner:login.u,t:localT});
+      if(localT>0||(!m.owner&&hasLocal())){dirty=true;send();}
+    }
+    idle();syncPhotos();
+  }
+  const hasLocal=()=>C.hasProgress?!!C.hasProgress():true;
+
+  function changed(){
+    if(suppress||!login)return;
+    syncPhotos();
+    const js=JSON.stringify(C.getState());if(js===lastSent)return;
+    lsSet(metaKey(),{owner:login.u,t:Date.now()});dirty=true;
+    if(status!=='off')setStatus('busy');schedule();
+  }
+  function schedule(){if(timer)return;const wait=Math.max(3000,8000-(Date.now()-lastSendAt));timer=setTimeout(()=>{timer=null;send();},wait);}
+  function send(keep){
+    if(!login||!dirty)return Promise.resolve(true);
+    if(sending)return sending;
+    const st=C.getState(),js=JSON.stringify(st);
+    if(js===lastSent){dirty=false;idle();return Promise.resolve(true);}
+    setStatus('busy');
+    sending=call(login.s,Object.assign(base(),{action:'save',t:meta().t||Date.now(),state:st,sum:C.getSummary()}),keep)
+      .then(r=>{if(r.ok){lastSent=js;dirty=JSON.stringify(C.getState())!==js;idle();return !dirty;}
+        if(r.err==='login'||r.err==='klasse'||r.err==='gesperrt'){forceLogout(ERR[r.err]);return false;}
+        setStatus('off');return false;})
+      .catch(()=>{setStatus('off');return false;})
+      .finally(()=>{sending=null;lastSendAt=Date.now();if(dirty&&login)schedule();});
+    return sending;
+  }
+
+  /* ---- Fotos: hochladen (Google Drive) und auf neuem Gerät wieder holen ---- */
+  function syncPhotos(){
+    if(!login||!C.photos||photoRun)return photoRun||Promise.resolve();
+    photoRun=(async()=>{
+      for(let loop=0;loop<20;loop++){
+        const up=photoList().find(p=>p.ph.src&&!p.ph.fid);
+        const down=photoList().find(p=>p.ph.fid&&!p.ph.src&&!p.ph.missing);
+        const job=up||down;if(!job||!login)break;
+        const ph=job.ph,src=ph.src;
+        if(up)setStatus('foto');
+        try{
+          const r=await call(login.s,Object.assign(base(),up?{action:'photo',key:job.key,data:src,sum:C.getSummary()}:{action:'photoGet',id:ph.fid}));
+          if(!r.ok){
+            if(r.err==='login'||r.err==='klasse'||r.err==='gesperrt'){forceLogout(ERR[r.err]);break;}
+            if(down)ph.missing=true;   // Foto nicht mehr auf dem Server
+            else{photoFail++;setStatus('off');break;}
+          }else if(up){if(ph.src===src){ph.fid=r.id;photoFail=0;}}
+          else ph.src=r.data;
+          C.onPhotos&&C.onPhotos();
+          if(up)changed();
+        }catch(e){photoFail++;setStatus('off');break;}
+      }
+    })().finally(()=>{photoRun=null;if(status!=='off')idle();});
+    return photoRun;
+  }
+
+  function flush(){if(dirty&&login){clearTimeout(timer);timer=null;send(true);}}
+  function forceLogout(msg){const s=login.s,u=login.u;login=null;lsSet(LOGIN_KEY,null);setStatus('');showLogin(s,u,msg);}
+
+  return {
+    init(opts){C=opts;
+      window.addEventListener('online',()=>{if(dirty)send();syncPhotos();});
+      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush();});
+      window.addEventListener('pagehide',flush);
+      setInterval(()=>{if(dirty&&!sending)send();if(photosPending())syncPhotos();},30000);
+      const sP=qs.get('s'),uP=(qs.get('u')||'').trim().toLowerCase();
+      login=lsGet(LOGIN_KEY);
+      const s=idOk(sP)?sP:(login&&idOk(login.s)?login.s:(idOk(STANDARD_ID)?STANDARD_ID:''));
+      if(!s){login=null;setStatus('lokal');return;}
+      server=s;
+      if(login&&(login.s!==s||(uP&&uP!==login.u))){login=null;lsSet(LOGIN_KEY,null);}
+      if(!login){showLogin(s,uP);return;}
+      C.onLogin(login);setStatus('busy');
+      call(s,Object.assign(base(),{action:'load'}))
+        .then(r=>{if(r.ok)applyServer(r.data);else if(r.err==='login'||r.err==='klasse'||r.err==='gesperrt')forceLogout(ERR[r.err]);else setStatus('off');})
+        .catch(()=>{setStatus('off');});
+    },
+    changed,
+    paint:()=>setStatus(status),
+    async now(){if(!login)return false;if(dirty||lastSent==='')dirty=true;await send();await syncPhotos();return !dirty&&!photosPending();},
+    active:()=>!!login,
+    configured:()=>!!server,
+    user:()=>login,
+    /* Abmelden. Liefert false, wenn noch nicht alles gespeichert ist (dann force=true zum Erzwingen). */
+    async logout(force){
+      if(!login)return true;
+      if(dirty||photosPending()){await send();await syncPhotos();if((dirty||photosPending())&&!force)return false;}
+      const s=login.s;login=null;lsSet(LOGIN_KEY,null);lsSet(metaKey(),null);lastSent='';dirty=false;setStatus('');
+      suppress=true;C.setState(null);suppress=false;showLogin(s,'');return true;
+    }
+  };
+})();
+
+/* Online-Speichern aktiv? (Link mit ?s=… oder schon angemeldet) */
+const CLOUD_ON=(()=>{try{const q=new URLSearchParams(location.search).get('s');if(q&&/^[A-Za-z0-9_-]{20,}$/.test(q))return true;const l=JSON.parse(localStorage.getItem('fs-login')||'null');return !!(l&&l.s);}catch(e){return false}})();
+const APP_ID='physik9-induktion';
+const escH=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const APP_KEY = 'gsis_induktion9_v1';
+const SALT = 'GSIS-Physik9-Induktion';
+const SESSIONS = [
+  {id:'t',  tab:'Start', short:'Start'},
+  {id:'s1', tab:'1 · Spule', short:'Sitzung 1'},
+  {id:'s2', tab:'2 · Graphen', short:'Sitzung 2'},
+  {id:'s3', tab:'3 · Induktion', short:'Sitzung 3'},
+  {id:'sum', tab:'Ergebnis', short:'Ergebnis'}
+];
+
+let STATE = freshState();
+let DIRTY = false;
+let TRAIN = {saved:false, erased:false};
+const QREG = {};          // id -> {session, kind, api}
+const ORDER = [];         // question ids in order
+
+function freshState(){ return {v:1, name:'', solved:{}, wrong:{}, revealed:{}, created:new Date().toISOString(), updated:null}; }
+
+/* ---------- small helpers ---------- */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+function h(tag, attrs={}, html=''){ const e=document.createElement(tag); for(const k in attrs){ if(k==='class') e.className=attrs[k]; else e.setAttribute(k,attrs[k]); } if(html) e.innerHTML=html; return e; }
+function hashStr(str, seed=0){ let h1=0xdeadbeef^seed, h2=0x41c6ce57^seed; for(let i=0;i<str.length;i++){const ch=str.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677);} h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909); h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909); return 4294967296*(2097151&h2)+(h1>>>0); }
+function seeded(seed){ let s = seed>>>0 || 1; return ()=>{ s^=s<<13; s>>>=0; s^=s>>17; s^=s<<5; s>>>=0; return s/4294967296; }; }
+function shuffleIdx(n, id){ const r=seeded(hashStr(id)); const a=[...Array(n).keys()]; for(let i=n-1;i>0;i--){const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function sessOf(id){ return id.split('-')[0]; }
+function fmt(x, d=2){ return (Math.round(x*10**d)/10**d).toString().replace('.',','); }
+
+/* ---------- counters ---------- */
+function starCount(sess){ return Object.keys(STATE.solved).filter(k=>STATE.solved[k] && ORDER.includes(k) && (!sess || sessOf(k)===sess)).length; }
+function wrongCount(sess){ let n=0; for(const k in STATE.wrong){ if(!sess || sessOf(k)===sess) n+=STATE.wrong[k]; } return n; }
+function totalStars(sess){ return ORDER.filter(id=>!sess || sessOf(id)===sess).length; }
+
+function updateCounters(pop){
+  $('#starCount').textContent = starCount();
+  $('#starTotal').textContent = totalStars();
+  $('#wrongCount').textContent = wrongCount();
+  $('#nameShow').textContent = STATE.name ? STATE.name : 'kein Name';
+  SESSIONS.forEach(s=>{ const b=$(`#tabs button[data-p="${s.id}"] .tabstars`); if(b && s.id!=='sum') b.textContent = `⭐${starCount(s.id)}/${totalStars(s.id)}`; });
+  if(pop){ const el=$('#starCount'); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  $('#unsaved').classList.toggle('show', !CLOUD_ON && DIRTY && starCount()>0);
+  if(typeof renderSummary==='function') renderSummary();
+  if(typeof renderTraining==='function') renderTraining();
+}
+
+function changed(pop){
+  STATE.updated = new Date().toISOString();
+  DIRTY = true;
+  backupToBrowser();
+  updateCounters(pop);
+  Cloud.changed();
+}
+
+/* ---------- star / wrong bookkeeping ---------- */
+function awardStar(id, fromEl){
+  if(STATE.solved[id]) return;
+  STATE.solved[id]=true;
+  delete STATE.revealed[id];
+  flyStar(fromEl);
+  changed(true);
+}
+function addWrong(id){ STATE.wrong[id]=(STATE.wrong[id]||0)+1; changed(false); }
+
+function flyStar(fromEl){
+  try{
+    const target=$('#starCount').getBoundingClientRect();
+    const src = fromEl ? fromEl.getBoundingClientRect() : {left:window.innerWidth/2, top:window.innerHeight/2, width:0, height:0};
+    const s=h('div',{class:'flystar'},'⭐');
+    s.style.left=(src.left+src.width/2-18)+'px'; s.style.top=(src.top+src.height/2-18)+'px';
+    document.body.appendChild(s);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ s.style.left=(target.left-6)+'px'; s.style.top=(target.top-8)+'px'; s.style.transform='scale(.5)'; s.style.opacity='.4'; }));
+    setTimeout(()=>s.remove(),900);
+  }catch(e){}
+}
+
+function toast(msg, ms=2600){ const t=$('#toast'); t.innerHTML=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), ms); }
+
+/* =====================================================================
+   SAVE / LOAD
+   ===================================================================== */
+function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64ToUtf8(b){ return decodeURIComponent(escape(atob(b))); }
+
+function makeCode(){
+  const json = JSON.stringify(STATE);
+  const hsh = hashStr(json+SALT).toString(36);
+  return 'IND9-' + utf8ToB64(json) + '-' + hsh;
+}
+function parseCode(text){
+  if(!text) throw new Error('leer');
+  const m = String(text).replace(/\s+/g,'').match(/IND9-([A-Za-z0-9+/=]+)-([a-z0-9]+)/);
+  if(!m) throw new Error('Kein gültiger Speicher-Code gefunden.');
+  const json = b64ToUtf8(m[1]);
+  const st = JSON.parse(json);
+  const ok = hashStr(json+SALT).toString(36) === m[2];
+  if(!st || typeof st!=='object' || !st.solved) throw new Error('Datei ist beschädigt.');
+  st.wrong = st.wrong||{}; st.revealed = st.revealed||{};
+  if(!ok) st.tampered = true;
+  return st;
+}
+function fileName(){
+  const n = (STATE.name||'Schueler').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'') || 'Schueler';
+  const d = new Date(); const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return `Induktion_${n}_${ds}.txt`;
+}
+function fileText(){
+  return `Physik Klasse 9 – Induktion – Spielstand\nName: ${STATE.name||'-'}\nSterne: ${starCount()} / ${totalStars()}\nFalsche Antworten: ${wrongCount()}\nGespeichert: ${new Date().toLocaleString('de-DE')}\n\nNicht verändern! Diese Datei auf der Seite mit "Laden" öffnen.\n\n${makeCode()}\n`;
+}
+function saveFile(){
+  try{
+    const blob = new Blob([fileText()], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = h('a',{href:url, download:fileName()});
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 4000);
+    markSaved('Datei');
+    return true;
+  }catch(e){ toast('Das Speichern als Datei hat nicht geklappt. Benutze den Code!'); return false; }
+}
+async function shareFile(){
+  try{
+    const f = new File([fileText()], fileName(), {type:'text/plain'});
+    if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share({files:[f], title:'Induktion Spielstand'}); markSaved('Teilen'); return true; }
+    toast('Teilen ist auf diesem Gerät nicht möglich. Benutze „Datei speichern“.'); return false;
+  }catch(e){ if(e && e.name!=='AbortError') toast('Teilen hat nicht geklappt.'); return false; }
+}
+async function copyCode(ta){
+  const code = makeCode();
+  if(ta){ ta.value = code; }
+  let ok=false;
+  try{ await navigator.clipboard.writeText(code); ok=true; }catch(e){
+    try{ if(ta){ ta.focus(); ta.select(); ok=document.execCommand('copy'); } }catch(e2){}
+  }
+  markSaved('Code');
+  toast(ok ? '📋 Code kopiert! Füge ihn jetzt in Notizen / OneNote ein.' : 'Markiere den Code und kopiere ihn selbst (Strg+C / Kopieren).', 3500);
+  return ok;
+}
+function markSaved(how){
+  DIRTY=false; TRAIN.saved=true;
+  try{ localStorage.setItem(APP_KEY+'_lastsave', new Date().toISOString()); }catch(e){}
+  updateCounters(false);
+  toast('💾 Gespeichert ('+how+'). Sterne: '+starCount());
+}
+function backupToBrowser(){ try{ localStorage.setItem(APP_KEY, JSON.stringify(STATE)); }catch(e){} }
+function readBackup(){ try{ const s=localStorage.getItem(APP_KEY); if(!s) return null; const st=JSON.parse(s); return st && st.solved ? st : null; }catch(e){ return null; } }
+function clearBackup(){ try{ localStorage.removeItem(APP_KEY); }catch(e){} }
+
+/* merge: a load never deletes stars you already have */
+function mergeState(st){
+  if(!STATE.name && st.name) STATE.name = st.name;
+  for(const k in st.solved){ if(st.solved[k]) STATE.solved[k]=true; }
+  for(const k in st.wrong){ STATE.wrong[k] = Math.max(STATE.wrong[k]||0, st.wrong[k]||0); }
+  for(const k in st.revealed){ if(st.revealed[k] && !STATE.solved[k]) STATE.revealed[k]=true; }
+  if(st.tampered) STATE.tampered = true;
+  if(st.created && (!STATE.created || st.created < STATE.created)) STATE.created = st.created;
+}
+function applyLoaded(st, how){
+  let foreign=false;
+  if(STATE.name && st.name && STATE.name.trim().toLowerCase() !== st.name.trim().toLowerCase()){
+    foreign=true; STATE.foreign = [...new Set([...(STATE.foreign||[]), st.name])];
+  }
+  if(st.foreign) STATE.foreign = [...new Set([...(STATE.foreign||[]), ...st.foreign])];
+  const before = starCount();
+  mergeState(st);
+  DIRTY = false;
+  refreshAllQuestions();
+  backupToBrowser();
+  updateCounters(true);
+  Cloud.changed();
+  $('#nameInput') && ($('#nameInput').value = STATE.name);
+  closeModal();
+  toast(`📂 Geladen (${how}): ⭐ ${starCount()} Sterne` + (st.tampered?' – ⚠ Datei wurde verändert':'') + (foreign?` – ⚠ Datei von „${st.name}“`:''), 4000);
+  if(typeof onLoadedForTraining==='function') onLoadedForTraining(before);
+  return true;
+}
+function loadFromFile(file){
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{ try{ applyLoaded(parseCode(r.result), 'Datei'); }catch(e){ showLoadError(e.message); } };
+  r.onerror = ()=> showLoadError('Die Datei konnte nicht gelesen werden.');
+  r.readAsText(file);
+}
+function loadFromCode(text){ try{ applyLoaded(parseCode(text), 'Code'); }catch(e){ showLoadError(e.message); } }
+function loadFromBackup(){ const st=readBackup(); if(!st){ showLoadError('Im Browser ist kein Fortschritt gespeichert.'); return; } applyLoaded(st,'Browser'); $('#backupBanner').classList.remove('show'); }
+function showLoadError(m){ toast('❌ '+m, 4000); const e=$('.loaderr'); if(e) e.textContent='❌ '+m; }
+
+function eraseAll(){
+  STATE = freshState();
+  DIRTY = false;
+  clearBackup();
+  refreshAllQuestions();
+  updateCounters(false);
+  if($('#nameInput')) $('#nameInput').value='';
+}
+
+/* ---------- modals ---------- */
+function openModal(html){ $('#modal .mcontent').innerHTML = html; $('#modal').classList.add('show'); }
+function closeModal(){ $('#modal').classList.remove('show'); }
+
+function fileSaveDialog(){
+  const canShare = !!(navigator.canShare && window.File);
+  openModal(`
+    <h2>💾 Fortschritt speichern</h2>
+    <p>Name: <input class="name" id="mName" placeholder="Vorname Nachname" value="${(STATE.name||'').replace(/"/g,'&quot;')}"></p>
+    <p class="small">Du hast <b>⭐ ${starCount()}</b> Sterne und <b>${wrongCount()}</b> falsche Antworten.</p>
+    <div class="method"><h3>Weg 1 (empfohlen): Datei speichern</h3>
+      <button class="bigbtn" id="mSaveFile">💾 Als Datei speichern</button>
+      <div class="small">iPad: Tippe auf „Laden“ – die Datei ist dann in der App <b>Dateien → Downloads</b>.<br>Laptop: Die Datei ist im Ordner <b>Downloads</b>.<br><span class="en">The file goes to your Downloads folder.</span></div>
+    </div>
+    ${canShare?`<div class="method"><h3>Weg 2: Teilen / In Dateien sichern</h3><button class="bigbtn gray" id="mShare">📤 Teilen …</button><div class="small">Zum Beispiel: „In Dateien sichern“, OneDrive oder an dich selbst schicken.</div></div>`:''}
+    <div class="method"><h3>Weg ${canShare?3:2}: Code kopieren</h3>
+      <button class="bigbtn gray" id="mCopy">📋 Code kopieren</button>
+      <div class="small">Füge den Code in <b>Notizen</b>, <b>OneNote</b> oder eine E-Mail an dich ein.</div>
+      <textarea class="code" id="mCode" readonly placeholder="Hier erscheint der Code"></textarea>
+    </div>
+    <p class="small">ℹ️ Der Browser merkt sich deinen Fortschritt zusätzlich automatisch. Aber das ist <b>nicht sicher</b> (z. B. anderes Gerät, Verlauf gelöscht). Speichere immer selbst!</p>`);
+  const syncName=()=>{ STATE.name=$('#mName').value.trim(); if($('#nameInput')) $('#nameInput').value=STATE.name; backupToBrowser(); updateCounters(false); };
+  $('#mName').addEventListener('input', syncName);
+  $('#mSaveFile').onclick=()=>{ syncName(); saveFile(); };
+  if(canShare) $('#mShare').onclick=()=>{ syncName(); shareFile(); };
+  $('#mCopy').onclick=()=>{ syncName(); copyCode($('#mCode')); };
+}
+function saveDialog(){
+  if(!CLOUD_ON || !Cloud.active()) return fileSaveDialog();
+  const u=Cloud.user();
+  openModal(`<h2>☁️ Mein Fortschritt</h2>
+    <p>Angemeldet: <b>${escH(STATE.name)}</b> <span class="small">(${escH(u.u)})</span></p>
+    <p><span class="cstat big" id="cloudStatus2"></span></p>
+    <p>Du hast <b>⭐ ${starCount()}</b> Sterne und <b>${wrongCount()}</b> falsche Antworten. Alles wird <b>automatisch</b> gespeichert – auf jedem iPad. <span class="en">(automatically)</span></p>
+    <p><button class="bigbtn green" id="cNow">☁️ Jetzt speichern</button><button class="bigbtn gray" id="cOut">🚪 Abmelden</button></p>
+    <p class="small" id="cOutMsg">Am Ende der Stunde: <b>🚪 Abmelden</b>. Dann kann das nächste Kind das iPad benutzen. <span class="en">(abmelden = log out)</span></p>
+    <details class="small"><summary>Ohne Internet? Datei oder Code (Notfall) · Alte Datei laden</summary>
+      <p><button class="bigbtn gray" id="cFile">💾 Datei / Code speichern</button><button class="bigbtn gray" id="cLoad">📂 Datei / Code laden</button></p></details>`);
+  Cloud.paint();
+  $('#cNow').onclick=async()=>{ toast('⏳ Speichert …',1200); const ok=await Cloud.now(); toast(ok?'☁️ Alles ist online gespeichert.':'⚠️ Noch nicht gespeichert (kein Internet?). Es wird später automatisch gespeichert.',4000); };
+  $('#cOut').onclick=()=>doLogout($('#cOutMsg'));
+  $('#cFile').onclick=fileSaveDialog; $('#cLoad').onclick=loadDialog;
+}
+let logoutArm=false;
+async function doLogout(msgEl){
+  const ok=await Cloud.logout(logoutArm);
+  if(ok){ logoutArm=false; closeModal(); return; }
+  logoutArm=true;
+  const m='⚠️ Noch nicht gespeichert (kein Internet?). Warte kurz – oder tippe noch einmal auf „Abmelden“. Dann geht Ungespeichertes verloren.';
+  if(msgEl) msgEl.innerHTML='<span class="errmsg">'+m+'</span>'; else toast(m,6000);
+  setTimeout(()=>logoutArm=false,8000);
+}
+function loadDialog(){
+  const bk = readBackup();
+  openModal(`
+    <h2>📂 Fortschritt laden</h2>
+    <p class="small">Keine Angst: Beim Laden gehen <b>keine</b> Sterne verloren. Die Sterne aus der Datei kommen dazu.</p>
+    <div class="method"><h3>Weg 1: Datei öffnen</h3>
+      <input type="file" id="mFile" accept=".txt,text/plain,.json,application/json">
+      <div class="small">iPad: „Durchsuchen“ → <b>Downloads</b> → Datei <i>Induktion_…txt</i> antippen.</div>
+    </div>
+    <div class="method"><h3>Weg 2: Code einfügen</h3>
+      <textarea class="code" id="mPaste" placeholder="Code hier einfügen (beginnt mit IND9-…)"></textarea>
+      <button class="bigbtn gray" id="mPasteBtn">Code laden</button>
+    </div>
+    ${bk?`<div class="method"><h3>Weg 3: Aus dem Browser</h3><button class="bigbtn gray" id="mBk">Browser-Speicher laden (⭐ ${Object.keys(bk.solved).length})</button></div>`:''}
+    <p class="loaderr errmsg"></p>`);
+  $('#mFile').addEventListener('change', e=>loadFromFile(e.target.files[0]));
+  $('#mPasteBtn').onclick=()=>loadFromCode($('#mPaste').value);
+  if(bk) $('#mBk').onclick=loadFromBackup;
+}
+
+/* =====================================================================
+   QUESTION WIDGETS
+   ===================================================================== */
+let QNUM = {};
+function qShell(def, sess){
+  QNUM[sess]=(QNUM[sess]||0)+1;
+  const el = h('div',{class:'q', id:'q_'+def.id});
+  el.innerHTML = `<div class="qhead"><span class="qnum">${def.label||('Aufgabe '+QNUM[sess])}</span><span class="wrongtag"></span><span class="qstar" title="Stern">⭐</span></div>
+    <div class="qtext">${def.q}</div><div class="qbody"></div>
+    <div class="qactions"><button class="check">Prüfen</button><span class="feedback"></span><button class="reveal">Lösung zeigen (ohne Stern)</button></div>
+    <div class="hint">💡 ${def.hint||''}</div>
+    <div class="explain">${def.explain||''}</div>`;
+  return el;
+}
+function setWrongTag(el,id){ const n=STATE.wrong[id]||0; $('.wrongtag',el).textContent = n? `✗ ${n}` : ''; }
+
+function wireCommon(el, def, api){
+  const id=def.id;
+  const fb=$('.feedback',el), rv=$('.reveal',el), hint=$('.hint',el), btn=$('.check',el);
+  btn.onclick = ()=>{
+    if(STATE.solved[id]||STATE.revealed[id]) return;
+    const res = api.check();
+    if(res===null){ fb.className='feedback bad'; fb.textContent='Bitte zuerst antworten.'; return; }
+    if(res){ fb.className='feedback ok'; fb.textContent = praise(); awardStar(id, $('.qstar',el)); api.lock(true); el.classList.add('solved'); btn.disabled=true; rv.classList.remove('show'); }
+    else{
+      addWrong(id); setWrongTag(el,id);
+      fb.className='feedback bad'; fb.textContent = 'Leider falsch. Versuche es noch einmal!';
+      if(def.hint) hint.classList.add('show');
+      if((STATE.wrong[id]||0)>=3) rv.classList.add('show');
+    }
+  };
+  rv.onclick = ()=>{ if(STATE.solved[id]) return; STATE.revealed[id]=true; api.lock(false); el.classList.add('revealed'); btn.disabled=true; rv.classList.remove('show'); fb.className='feedback'; fb.textContent='Lösung angezeigt – kein Stern.'; changed(false); };
+  api.refresh = ()=>{
+    el.classList.remove('solved','revealed'); btn.disabled=false; fb.textContent=''; fb.className='feedback'; hint.classList.remove('show'); rv.classList.remove('show');
+    api.reset && api.reset();
+    if(STATE.solved[id]){ api.lock(true); el.classList.add('solved'); btn.disabled=true; fb.className='feedback ok'; fb.textContent='✓ gelöst'; }
+    else if(STATE.revealed[id]){ api.lock(false); el.classList.add('revealed'); btn.disabled=true; fb.textContent='Lösung angezeigt – kein Stern.'; }
+    else if((STATE.wrong[id]||0)>=3) rv.classList.add('show');
+    if(!STATE.solved[id] && !STATE.revealed[id] && (STATE.wrong[id]||0)>0 && def.hint) hint.classList.add('show');
+    setWrongTag(el,id);
+  };
+}
+const PRAISE=['Richtig! ⭐','Super! ⭐','Genau! ⭐','Sehr gut! ⭐','Stark! ⭐','Perfekt! ⭐'];
+function praise(){ return PRAISE[Math.floor(Math.random()*PRAISE.length)]; }
+
+/* multiple choice (single or multi) */
+function mcWidget(def, sess){
+  const el=qShell(def, sess); const body=$('.qbody',el);
+  const multi = Array.isArray(def.a);
+  const correct = new Set(multi? def.a : [def.a]);
+  const order = def.noShuffle ? def.opts.map((_,i)=>i) : shuffleIdx(def.opts.length, def.id);
+  const box=h('div',{class:'opts'+(def.graphs?' graphs':'')+(def.row?' row':'')});
+  const type = multi?'checkbox':'radio';
+  order.forEach(i=>{
+    const lab=h('label',{class:'opt'});
+    lab.innerHTML=`<input type="${type}" name="r_${def.id}" value="${i}"><div>${def.opts[i]}</div>`;
+    $('input',lab).addEventListener('change',()=>{ $$('.opt',box).forEach(o=>o.classList.toggle('sel', $('input',o).checked)); });
+    box.appendChild(lab);
+  });
+  body.appendChild(box);
+  if(multi) body.appendChild(h('div',{class:'small'},'Mehrere Antworten können richtig sein. <span class="en">(more than one may be correct)</span>'));
+  const api={
+    check(){ const sel=$$('input',box).filter(i=>i.checked).map(i=>+i.value); if(!sel.length) return null;
+      const ok = sel.length===correct.size && sel.every(i=>correct.has(i));
+      if(!ok){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); o.classList.toggle('wrongsel', inp.checked); }); setTimeout(()=>$$('.opt',box).forEach(o=>o.classList.remove('wrongsel')),900); }
+      return ok; },
+    lock(){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); const v=+inp.value; inp.disabled=true; inp.checked=correct.has(v); o.classList.toggle('right', correct.has(v)); o.classList.remove('sel','wrongsel'); }); },
+    reset(){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); inp.disabled=false; inp.checked=false; o.classList.remove('right','sel','wrongsel'); }); }
+  };
+  wireCommon(el,def,api); return {el,api};
+}
+
+/* numeric answer */
+function parseNum(s){ if(s==null) return NaN; s=String(s).trim().replace(/\s/g,'').replace(/·10\^?/,'e').replace(',', '.'); const m=s.match(/-?\d*\.?\d+(e[-+]?\d+)?/i); return m? parseFloat(m[0]) : NaN; }
+function numWidget(def, sess){
+  const el=qShell(def, sess); const body=$('.qbody',el);
+  const row=h('div',{class:'numrow'});
+  row.innerHTML=`${def.pre||''}<input type="text" inputmode="decimal" placeholder="Zahl"> <b>${def.unit||''}</b>`;
+  body.appendChild(row);
+  const inp=$('input',row);
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') $('.check',el).click(); });
+  const tol = def.tol ?? 0.03;
+  const api={
+    check(){ const v=parseNum(inp.value); if(isNaN(v)) return null;
+      const ok = def.abs!=null ? Math.abs(v-def.a)<=def.abs : Math.abs(v-def.a) <= Math.abs(def.a)*tol + 1e-12;
+      inp.classList.toggle('bad',!ok); return ok; },
+    lock(){ inp.value = def.show || fmt(def.a, def.dec ?? 2); inp.disabled=true; inp.classList.remove('bad'); inp.classList.add('ok'); },
+    reset(){ inp.disabled=false; inp.value=''; inp.classList.remove('ok','bad'); }
+  };
+  wireCommon(el,def,api); return {el,api};
+}
+
+/* cloze with dropdowns:  text {*right|wrong|wrong} */
+function clozeWidget(def, sess){
+  const el=qShell(def, sess); const body=$('.qbody',el);
+  const wrap=h('div',{class:'cloze'});
+  const sels=[];
+  def.lines.forEach((line,li)=>{
+    const d=h('div',{class:'line'});
+    let k=0;
+    d.innerHTML = line.replace(/\{([^}]+)\}/g,(m,inner)=>{
+      const opts=inner.split('|'); const right=opts.findIndex(o=>o.startsWith('*'));
+      const clean=opts.map(o=>o.replace(/^\*/,''));
+      const ord = def.noShuffle? clean.map((_,i)=>i) : shuffleIdx(clean.length, def.id+'_'+li+'_'+k);
+      k++;
+      return `<select data-right="${right}"><option value="">– wählen –</option>${ord.map(i=>`<option value="${i}">${clean[i]}</option>`).join('')}</select>`;
+    });
+    wrap.appendChild(d);
+  });
+  body.appendChild(wrap);
+  $$('select',wrap).forEach(s=>sels.push(s));
+  const api={
+    check(){ if(sels.some(s=>s.value==='')) return null; let all=true;
+      sels.forEach(s=>{ const ok = s.value===s.dataset.right; s.classList.toggle('bad',!ok); s.classList.toggle('ok',ok); if(!ok) all=false; });
+      return all; },
+    lock(){ sels.forEach(s=>{ s.value=s.dataset.right; s.disabled=true; s.classList.remove('bad'); s.classList.add('ok'); }); },
+    reset(){ sels.forEach(s=>{ s.value=''; s.disabled=false; s.classList.remove('ok','bad'); }); }
+  };
+  wireCommon(el,def,api); return {el,api};
+}
+
+/* vocabulary matching (built on cloze) */
+function matchWidget(def, sess){
+  const ens = def.pairs.map(p=>p[1]);
+  const lines = def.pairs.map((p,i)=>{
+    const opts = ens.map((e,j)=> (j===i?'*':'')+e.replace(/[|{}]/g,'/'));
+    return `<span class="matchrow"><span class="de">${def.reverse?p[1]:p[0]}</span> → {${def.reverse? def.pairs.map((q,j)=>(j===i?'*':'')+q[0]).join('|') : opts.join('|')}}</span>`;
+  });
+  return clozeWidget({...def, lines}, sess);
+}
+
+/* Heft sentence: star for writing it into the exercise book */
+function heftWidget(def){
+  const el=h('div',{class:'heft', id:'q_'+def.id});
+  el.innerHTML=`<div class="htitle">✍️ Merksatz – schreibe ihn in dein Heft! <span class="en">(copy into your exercise book)</span><span class="qstar" style="margin-left:auto;font-size:1.3rem">⭐</span></div>
+    <div class="htext">${def.text}</div>
+    <label><input type="checkbox"> Ich habe den Merksatz sauber in mein Heft geschrieben.</label>
+    ${def.src?`<div class="small" style="margin-top:6px">${def.src}</div>`:''}`;
+  const cb=$('input',el);
+  const api={ refresh(){ cb.checked=!!STATE.solved[def.id]; cb.disabled=!!STATE.solved[def.id]; el.classList.toggle('done',cb.checked); $('.qstar',el).style.filter=cb.checked?'none':'grayscale(1)'; $('.qstar',el).style.opacity=cb.checked?1:.35; } };
+  cb.addEventListener('change',()=>{ if(cb.checked){ awardStar(def.id, $('.qstar',el)); api.refresh(); } });
+  return {el,api};
+}
+
+/* vocabulary table */
+function vocabWidget(def){
+  const el=h('div',{class:'card'});
+  el.innerHTML=`<div class="flex" style="justify-content:space-between"><h3 style="margin:0">📖 ${def.title||'Neue Wörter'} <span class="en">(new words)</span></h3>
+    <div class="vocabtools"><button class="vbtn" data-a="hide">🙈 Englisch verdecken</button></div></div>
+    <table class="vocab"><thead><tr><th>Deutsch</th><th>English</th></tr></thead><tbody>
+    ${def.words.map(w=>`<tr><td class="de">${w[0]}</td><td class="enc">${w[1]}</td></tr>`).join('')}</tbody></table>
+    <div class="small">Tipp: Verdecke die englischen Wörter und teste dich selbst. Tippe auf ein graues Feld, um es zu sehen.</div>`;
+  const tbl=$('table',el), b=$('button',el);
+  b.onclick=()=>{ tbl.classList.toggle('hide-en'); b.textContent = tbl.classList.contains('hide-en')?'👀 Englisch zeigen':'🙈 Englisch verdecken'; $$('td.enc',tbl).forEach(t=>t.classList.remove('peek')); };
+  $$('td.enc',tbl).forEach(t=>t.addEventListener('click',()=>t.classList.toggle('peek')));
+  return {el};
+}
+
+/* ---------- rendering of a block list ---------- */
+const REFRESHERS=[];
+function renderBlocks(container, blocks, sess){
+  blocks.forEach(b=>{
+    let w=null;
+    switch(b.t){
+      case 'h2': container.appendChild(h('h2',b.id?{id:b.id}:{}, b.text)); break;
+      case 'h3': container.appendChild(h('h3',{}, b.text)); break;
+      case 'html': { const d=h('div'); d.innerHTML=b.html; while(d.firstChild) container.appendChild(d.firstChild); break; }
+      case 'vocab': container.appendChild(vocabWidget(b).el); break;
+      case 'mc': w=mcWidget(b,sess); break;
+      case 'num': w=numWidget(b,sess); break;
+      case 'cloze': w=clozeWidget(b,sess); break;
+      case 'match': w=matchWidget(b,sess); break;
+      case 'heft': w=heftWidget(b); break;
+      case 'custom': { const d=h('div'); container.appendChild(d); b.render(d); break; }
+    }
+    if(w){
+      if(QREG[b.id]) console.error('duplicate id', b.id);
+      QREG[b.id]={api:w.api}; ORDER.push(b.id);
+      container.appendChild(w.el); REFRESHERS.push(w.api.refresh);
+    }
+  });
+}
+function refreshAllQuestions(){ REFRESHERS.forEach(f=>f()); }
+
+/* =====================================================================
+   SVG helpers: graphs and field-line pictures
+   ===================================================================== */
+function graph(o){
+  const W=o.w||380, H=o.h||230, ml=o.ml||48, mb=40, mt=14, mr=16;
+  const [x0,x1,dx]=o.x, [y0,y1,dy]=o.y;
+  const X=v=>ml+(v-x0)/(x1-x0)*(W-ml-mr), Y=v=>H-mb-(v-y0)/(y1-y0)*(H-mb-mt);
+  let s=`<svg class="graph" viewBox="0 0 ${W} ${H}" width="${W}" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif" font-size="12">`;
+  if(o.bands) o.bands.forEach(b=>{ s+=`<rect x="${X(b[0])}" y="${mt}" width="${X(b[1])-X(b[0])}" height="${H-mb-mt}" fill="${b[2]||'#fff2b3'}" opacity=".7"/>`; if(b[3]) s+=`<text x="${(X(b[0])+X(b[1]))/2}" y="${mt+12}" text-anchor="middle" font-weight="700" fill="#6b4b00">${b[3]}</text>`; });
+  for(let v=x0; v<=x1+1e-9; v+=dx){ s+=`<line x1="${X(v)}" y1="${mt}" x2="${X(v)}" y2="${H-mb}" stroke="#e3e8f0"/>`; if(o.noXnum!==true) s+=`<text x="${X(v)}" y="${H-mb+15}" text-anchor="middle" fill="#555">${fmt(v,2)}</text>`; }
+  for(let v=y0; v<=y1+1e-9; v+=dy){ s+=`<line x1="${ml}" y1="${Y(v)}" x2="${W-mr}" y2="${Y(v)}" stroke="#e3e8f0"/>`; if(o.noYnum!==true) s+=`<text x="${ml-6}" y="${Y(v)+4}" text-anchor="end" fill="#555">${fmt(v,2)}</text>`; }
+  const ya = (y0<=0 && y1>=0)? Y(0) : H-mb;
+  s+=`<line x1="${ml}" y1="${ya}" x2="${W-mr+4}" y2="${ya}" stroke="#333" stroke-width="1.5" marker-end="url(#ah)"/>`;
+  s+=`<line x1="${ml}" y1="${H-mb}" x2="${ml}" y2="${mt-6}" stroke="#333" stroke-width="1.5"/>`;
+  s+=`<text x="${W-mr}" y="${H-6}" text-anchor="end" fill="#333" font-style="italic">${o.xl||''}</text>`;
+  s+=`<text x="${ml+6}" y="${mt+2}" fill="#333" font-style="italic">${o.yl||''}</text>`;
+  const series = o.series || [{pts:o.pts, fn:o.fn, color:o.color}];
+  series.forEach(se=>{
+    let pts = se.pts;
+    if(se.fn){ pts=[]; const n=200; for(let i=0;i<=n;i++){ const t=x0+(x1-x0)*i/n; pts.push([t,se.fn(t)]); } }
+    s+=`<polyline fill="none" stroke="${se.color||'#0b7bc1'}" stroke-width="${se.width||3}" stroke-linejoin="round" ${se.dash?'stroke-dasharray="6 4"':''} points="${pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}"/>`;
+    if(se.dots) se.pts.forEach(p=>{ s+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4" fill="${se.color||'#0b7bc1'}"/>`; });
+  });
+  if(o.labels) o.labels.forEach(l=>{ s+=`<text x="${X(l[0])}" y="${Y(l[1])}" text-anchor="middle" font-weight="700" fill="${l[3]||'#16325c'}">${l[2]}</text>`; });
+  s+=`<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#333"/></marker></defs></svg>`;
+  return o.caption ? `<div class="graphwrap">${s}<div class="caption">${o.caption}</div></div>` : `<div class="graphwrap">${s}</div>`;
+}
+
+/* field picture: cols x rows grid. field(c,r)->bool ; coil [c0,r0,c1,r1] (inclusive cells) */
+function fieldPic(o){
+  const cs=o.cell||22, cols=o.cols, rows=o.rows, W=cols*cs+(o.meter?40:4), H=rows*cs+4;
+  const inCoil=(c,r)=> o.coil && c>=o.coil[0] && c<=o.coil[2] && r>=o.coil[1] && r<=o.coil[3];
+  let s=`<svg class="graph" viewBox="0 0 ${W} ${H}" width="${W}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const f=(o.region||o.field)(c,r);
+    if(f) s+=`<rect x="${c*cs+2}" y="${r*cs+2}" width="${cs}" height="${cs}" fill="#bfe3f8"/>`;
+  }
+  if(o.coil){ const [c0,r0,c1,r1]=o.coil; s+=`<rect x="${c0*cs+2}" y="${r0*cs+2}" width="${(c1-c0+1)*cs}" height="${(r1-r0+1)*cs}" fill="#0b7bc1" opacity=".85"/>`; }
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    if(!o.field(c,r)) continue;
+    const cx=c*cs+2+cs/2, cy=r*cs+2+cs/2, rr=cs*0.27, col=inCoil(c,r)?'#fff':'#1b5f8c';
+    s+=`<circle cx="${cx}" cy="${cy}" r="${rr}" fill="none" stroke="${col}" stroke-width="1.4"/>`;
+    if(o.sym==='dot') s+=`<circle cx="${cx}" cy="${cy}" r="${rr*0.35}" fill="${col}"/>`;
+    else s+=`<path d="M${cx-rr*.7},${cy-rr*.7}L${cx+rr*.7},${cy+rr*.7}M${cx+rr*.7},${cy-rr*.7}L${cx-rr*.7},${cy+rr*.7}" stroke="${col}" stroke-width="1.4"/>`;
+  }
+  if(o.coil){ const [c0,r0,c1,r1]=o.coil; const x=c1*cs+cs+2, ym=(r0+r1+1)/2*cs+2;
+    s+=`<rect x="${c0*cs+2}" y="${r0*cs+2}" width="${(c1-c0+1)*cs}" height="${(r1-r0+1)*cs}" fill="none" stroke="#a0392b" stroke-width="3"/>`;
+    if(o.meter){ const mx=Math.max(x+20, cols*cs+20); s+=`<path d="M${x},${r0*cs+2+4} H${mx} V${ym-10} M${mx},${ym+10} V${(r1+1)*cs-2} H${x}" fill="none" stroke="#a0392b" stroke-width="2"/><circle cx="${mx}" cy="${ym}" r="10" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="${mx}" y="${ym+4}" text-anchor="middle" font-size="11" font-family="Arial">V</text>`; }
+  }
+  s+='</svg>';
+  return `<div>${s}${o.label?`<div class="caption">${o.label}</div>`:''}</div>`;
+}
+function rectField(c0,r0,c1,r1, step=1){ return (c,r)=> c>=c0&&c<=c1&&r>=r0&&r<=r1 && ((c-c0)%step===0) && ((r-r0)%step===0); }
+
+/* =====================================================================
+   Simulations
+   ===================================================================== */
+const MU0 = 1.26e-6;
+
+/* ---------- Session 1: B = mu0 N I / L ---------- */
+function simCoilB(root){
+  root.className='sim';
+  root.innerHTML=`<div class="simtitle">🧪 Simulation: Magnetfeld in einer langen Spule</div>
+  <div class="small">Verändere die Stromstärke I, die Windungszahl N und die Länge L. Beobachte B.</div>
+  <div class="slider"><label>Stromstärke I</label><input type="range" min="0" max="3" step="0.1" value="1" data-k="I"><output></output></div>
+  <div class="slider"><label>Windungen N</label><input type="range" min="100" max="1000" step="100" value="300" data-k="N"><output></output></div>
+  <div class="slider"><label>Länge L</label><input type="range" min="0.1" max="0.5" step="0.05" value="0.15" data-k="L"><output></output></div>
+  <div class="center" style="margin:10px 0"><span class="formula small">B = <span class="frac"><span>μ₀ · N · I</span><span>L</span></span> = <span class="frac"><span class="calcTop"></span><span class="calcBot"></span></span></span>
+   <div class="bigresult" style="margin-top:6px">B = <span class="bval"></span> mT</div></div>
+  <div class="plot"></div>
+  <div class="caption">Blaue Gerade: B gegen I für deine Spule. Der Punkt ist deine Einstellung. <span class="en">(B is proportional to I → straight line through the origin)</span></div>`;
+  const inp={}; $$('input',root).forEach(i=>inp[i.dataset.k]=i);
+  function upd(){
+    const I=+inp.I.value, N=+inp.N.value, L=+inp.L.value;
+    $$('.slider',root).forEach(s=>{ const i=$('input',s), o=$('output',s); o.textContent = i.dataset.k==='I'? fmt(I,1)+' A' : i.dataset.k==='N'? N : fmt(L,2)+' m'; });
+    const B = MU0*N*I/L*1000;
+    $('.calcTop',root).textContent = `1,26·10⁻⁶ T·m/A · ${N} · ${fmt(I,1)} A`;
+    $('.calcBot',root).textContent = `${fmt(L,2)} m`;
+    $('.bval',root).textContent = fmt(B,2);
+    const slope = MU0*N/L*1000;
+    const line = slope*3>15 ? [[0,0],[15/slope,15]] : [[0,0],[3,3*slope]];
+    $('.plot',root).innerHTML = graph({x:[0,3,0.5], y:[0,15,3], xl:'I in A', yl:'B in mT', w:420, h:240,
+      series:[{pts:line, color:'#0b7bc1'}, {pts:[[I,B]], dots:true, color:'#e8762b', width:0}]});
+  }
+  Object.values(inp).forEach(i=>i.addEventListener('input',upd)); upd();
+}
+
+/* ---------- canvas helper ---------- */
+function setupCanvas(cv, W, H){
+  const dpr = window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.width='100%'; cv.style.maxWidth=W+'px'; cv.style.aspectRatio=W+'/'+H;
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return ctx;
+}
+function drawMeter(ctx, x, y, r, val, label){
+  ctx.save();
+  ctx.fillStyle='#3a3f4a'; roundRect(ctx, x-r-14, y-r-14, 2*r+28, r+56, 10); ctx.fill();
+  ctx.fillStyle='#fdfdf8'; roundRect(ctx, x-r-6, y-r-6, 2*r+12, r+42, 6); ctx.fill();
+  ctx.strokeStyle='#333'; ctx.lineWidth=1.2;
+  for(let i=-10;i<=10;i++){ const a=-Math.PI/2 + i*Math.PI/30; const r1=r-(i%5===0?12:6);
+    ctx.beginPath(); ctx.moveTo(x+Math.cos(a)*r1, y+12+Math.sin(a)*r1); ctx.lineTo(x+Math.cos(a)*r, y+12+Math.sin(a)*r); ctx.stroke(); }
+  ctx.fillStyle='#333'; ctx.font='bold 13px Arial'; ctx.textAlign='center';
+  ctx.fillText('0', x, y-r+30); ctx.fillText('−', x-r+6, y+2); ctx.fillText('+', x+r-6, y+2);
+  ctx.font='11px Arial'; ctx.fillText(label||'U', x, y+31);
+  const v=Math.max(-1.05, Math.min(1.05, val)); const a=-Math.PI/2 + v*Math.PI/3;
+  ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(x, y+12); ctx.lineTo(x+Math.cos(a)*(r-4), y+12+Math.sin(a)*(r-4)); ctx.stroke();
+  ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(x,y+12,4,0,7); ctx.fill();
+  ctx.restore();
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function drawStrip(ctx, x, y, w, h, data, key, color, label, scale){
+  ctx.save();
+  ctx.fillStyle='#fff'; ctx.fillRect(x,y,w,h); ctx.strokeStyle='#dde3ec'; ctx.strokeRect(x,y,w,h);
+  ctx.strokeStyle='#999'; ctx.beginPath(); ctx.moveTo(x, y+h/2); ctx.lineTo(x+w, y+h/2); ctx.stroke();
+  ctx.fillStyle='#555'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(label, x+6, y+14);
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.beginPath();
+  data.forEach((d,i)=>{ const px=x+w*i/(data.length-1), py=y+h/2 - Math.max(-1,Math.min(1,d[key]/scale))*(h/2-6); i?ctx.lineTo(px,py):ctx.moveTo(px,py); });
+  ctx.stroke(); ctx.restore();
+}
+
+/* ---------- Session 3: magnet and coil ---------- */
+function simMagnet(root){
+  root.className='sim';
+  root.innerHTML=`<div class="simtitle">🧪 Simulation: Magnet und Spule</div>
+   <div class="small">Ziehe den Magneten mit der Maus oder dem Finger. Oder benutze den Schieberegler. <span class="en">(drag the magnet)</span></div>
+   <canvas></canvas>
+   <div class="slider"><label>Position Magnet</label><input type="range" min="0" max="1000" value="80" class="pos"><output></output></div>
+   <div class="simbtns">
+     <button data-a="flip">🔄 Magnet umdrehen (N ↔ S)</button>
+     <button data-a="turns">Windungen: <b class="tn">500</b></button>
+     <button data-a="slow">▶ langsam durch die Spule</button>
+     <button data-a="fast">⏩ schnell durch die Spule</button>
+     <button data-a="stop">⏹ Stopp</button>
+   </div>`;
+  const W=760, H=430, cv=$('canvas',root), ctx=setupCanvas(cv,W,H);
+  const coilX=W/2, coilY=120, coilW=120, coilH=110, magL=170, magH=36;
+  let pos=0.08, pol=1, turns=500, auto=null, dragging=false, dragOff=0;
+  const posToX=p=> 60+magL/2 + p*(W-120-magL), xToPos=x=> Math.max(0,Math.min(1,(x-60-magL/2)/(W-120-magL)));
+  const flux=x=>{ const d=(x-coilX)/75; return pol*turns/500 * 1/Math.pow(1+d*d,1.5); };
+  let lastFlux=flux(posToX(pos)), U=0, hist=[]; for(let i=0;i<300;i++) hist.push({u:0,f:lastFlux});
+  const slider=$('.pos',root);
+  slider.addEventListener('input',()=>{ auto=null; pos=slider.value/1000; });
+  const ptr=e=>{ const r=cv.getBoundingClientRect(); return (e.clientX-r.left)*W/r.width; };
+  const ptrY=e=>{ const r=cv.getBoundingClientRect(); return (e.clientY-r.top)*H/r.height; };
+  cv.addEventListener('pointerdown',e=>{ const x=ptr(e), y=ptrY(e), mx=posToX(pos); if(Math.abs(x-mx)<magL/2+10 && Math.abs(y-coilY)<magH){ dragging=true; dragOff=x-mx; auto=null; cv.setPointerCapture(e.pointerId); } });
+  cv.addEventListener('pointermove',e=>{ if(dragging){ pos=xToPos(ptr(e)-dragOff); } });
+  const up=()=>dragging=false; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  $$('.simbtns button',root).forEach(b=>b.onclick=()=>{
+    const a=b.dataset.a;
+    if(a==='flip'){ pol*=-1; lastFlux=flux(posToX(pos)); }
+    if(a==='turns'){ turns = turns===250?500: turns===500?1000:250; $('.tn',root).textContent=turns; lastFlux=flux(posToX(pos)); }
+    if(a==='slow'||a==='fast'){ auto={v:(a==='slow'?0.18:0.55), dir: pos<0.5?1:-1}; }
+    if(a==='stop') auto=null;
+  });
+  let tPrev=performance.now();
+  function frame(t){
+    if(!root.isConnected) return;
+    const dt=Math.min(0.05,(t-tPrev)/1000); tPrev=t;
+    if(auto){ pos+=auto.v*auto.dir*dt; if(pos>=1||pos<=0){ pos=Math.max(0,Math.min(1,pos)); auto=null; } }
+    slider.value=Math.round(pos*1000); $('output',root).textContent='';
+    const f=flux(posToX(pos)); const dU = dt>0? -(f-lastFlux)/dt : 0; lastFlux=f;
+    U += (dU*0.45 - U)*Math.min(1, dt*14);
+    hist.push({u:U, f}); if(hist.length>300) hist.shift();
+    draw(f);
+    requestAnimationFrame(frame);
+  }
+  function draw(f){
+    ctx.clearRect(0,0,W,H);
+    // coil body
+    const cx=coilX-coilW/2, cy=coilY-coilH/2;
+    ctx.fillStyle='#c98d5a'; roundRect(ctx,cx,cy,coilW,coilH,6); ctx.fill();
+    ctx.strokeStyle='#7a4a24'; ctx.lineWidth=2; for(let i=0;i<=coilW;i+=7){ ctx.beginPath(); ctx.moveTo(cx+i,cy+2); ctx.lineTo(cx+i,cy+coilH-2); ctx.stroke(); }
+    ctx.fillStyle='#fff'; ctx.fillRect(cx-4, coilY-magH/2-4, coilW+8, magH+8);
+    // wires to meter
+    ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(cx+18,cy); ctx.bezierCurveTo(cx+10,cy-30,W-170,cy-10,W-120,70); ctx.moveTo(cx+coilW-18,cy); ctx.bezierCurveTo(cx+coilW,cy-40,W-150,cy-25,W-100,72); ctx.stroke();
+    drawMeter(ctx, W-110, 40, 46, U*1.6, 'Spannung U');
+    // magnet
+    const mx=posToX(pos), x0=mx-magL/2;
+    const left = pol>0 ? ['N','#d9433b'] : ['S','#2f9e5a'], right = pol>0 ? ['S','#2f9e5a'] : ['N','#d9433b'];
+    ctx.fillStyle=left[1]; ctx.fillRect(x0, coilY-magH/2, magL/2, magH);
+    ctx.fillStyle=right[1]; ctx.fillRect(mx, coilY-magH/2, magL/2, magH);
+    ctx.strokeStyle='#333'; ctx.lineWidth=1.5; ctx.strokeRect(x0, coilY-magH/2, magL, magH);
+    ctx.fillStyle='#fff'; ctx.font='bold 18px Arial'; ctx.textAlign='center';
+    ctx.fillText(left[0], x0+16, coilY+6); ctx.fillText(right[0], x0+magL-16, coilY+6);
+    // coil front part over magnet
+    ctx.fillStyle='rgba(201,141,90,.55)'; ctx.fillRect(cx, coilY-magH/2-4, coilW, magH+8);
+    ctx.strokeStyle='rgba(122,74,36,.8)'; for(let i=0;i<=coilW;i+=7){ ctx.beginPath(); ctx.moveTo(cx+i,coilY-magH/2-4); ctx.lineTo(cx+i,coilY+magH/2+4); ctx.stroke(); }
+    ctx.fillStyle='#333'; ctx.font='13px Arial'; ctx.fillText('Spule ('+turns+' Windungen)', coilX, cy+coilH+18);
+    // flux bar
+    ctx.fillStyle='#555'; ctx.textAlign='left'; ctx.font='12px Arial'; ctx.fillText('Feldlinien in der Spule:', 20, 30);
+    ctx.fillStyle='#e3e8f0'; ctx.fillRect(20,38,200,14); ctx.fillStyle=f>=0?'#0b7bc1':'#8e44ad'; ctx.fillRect(120,38, Math.max(-100,Math.min(100,f*50)),14);
+    // strips
+    drawStrip(ctx, 20, 220, W-40, 95, hist, 'f', '#0b7bc1', 'Magnetfeld in der Spule (Anzahl Feldlinien)', 1.3);
+    drawStrip(ctx, 20, 325, W-40, 95, hist, 'u', '#c0392b', 'induzierte Spannung U', 1.2);
+    ctx.fillStyle='#777'; ctx.font='11px Arial'; ctx.textAlign='right'; ctx.fillText('Zeit →', W-26, 416);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Session 3: rotating coil ---------- */
+function simRotate(root){
+  root.className='sim';
+  root.innerHTML=`<div class="simtitle">🧪 Simulation: Eine Spule dreht sich im Magnetfeld</div>
+   <div class="small">Seitenansicht: Die Feldlinien gehen von oben nach unten. Die Spule (eine Windung) dreht sich. Zähle die Feldlinien, die durch die Spule gehen (orange).</div>
+   <canvas></canvas>
+   <div class="slider"><label>Drehgeschwindigkeit</label><input type="range" min="0" max="2" step="0.1" value="0.5"><output></output></div>
+   <div class="simbtns"><button data-a="pause">⏸ Pause / ▶ Weiter</button></div>`;
+  const W=760, H=400, cv=$('canvas',root), ctx=setupCanvas(cv,W,H);
+  let th=0, run=true, hist=[]; const sp=$('input',root);
+  $('button',root).onclick=()=>run=!run;
+  const lines=[]; for(let x=60;x<=300;x+=24) lines.push(x);
+  const cx=180, cy=150, half=110;
+  let tPrev=performance.now();
+  function frame(t){
+    if(!root.isConnected) return;
+    const dt=Math.min(0.05,(t-tPrev)/1000); tPrev=t;
+    const w=+sp.value; $('output',root).textContent = w==0?'steht':fmt(w,1)+' U/s';
+    if(run) th += w*2*Math.PI*dt;
+    const phi = Math.cos(th); const u = w*Math.sin(th);
+    if(run && w>0){ hist.push({f:phi,u}); if(hist.length>260) hist.shift(); }
+    draw(phi,u); requestAnimationFrame(frame);
+  }
+  function draw(phi,u){
+    ctx.clearRect(0,0,W,H);
+    const x1=cx-Math.cos(th)*half, y1=cy-Math.sin(th)*half, x2=cx+Math.cos(th)*half, y2=cy+Math.sin(th)*half;
+    const lo=Math.min(x1,x2), hi=Math.max(x1,x2);
+    let n=0;
+    lines.forEach(x=>{ const hit = x>lo && x<hi; if(hit) n++;
+      ctx.strokeStyle= hit?'#e8762b':'#8cc7ec'; ctx.lineWidth=hit?3:2; ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,285); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-5,276); ctx.lineTo(x,286); ctx.lineTo(x+5,276); ctx.stroke(); });
+    // coil (edge-on), two coloured faces
+    const nx=-Math.sin(th), ny=Math.cos(th);
+    ctx.lineCap='round';
+    ctx.strokeStyle='#a0392b'; ctx.lineWidth=9; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.strokeStyle='#f1c40f'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x1-nx*5,y1-ny*5); ctx.lineTo(x2-nx*5,y2-ny*5); ctx.stroke();
+    ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(cx,cy,5,0,7); ctx.fill();
+    ctx.fillStyle='#333'; ctx.font='bold 15px Arial'; ctx.textAlign='left';
+    ctx.fillText('Feldlinien durch die Spule: '+n, 340, 40);
+    ctx.font='12px Arial'; ctx.fillStyle='#666'; ctx.fillText('(gelbe Seite oben = positiv, gelbe Seite unten = negativ)', 340, 58);
+    drawMeter(ctx, 640, 120, 46, u/1.4, 'Spannung U');
+    const pts = hist.length>1? hist : [{f:phi,u},{f:phi,u}];
+    const full = pts.length<260 ? [...Array(260-pts.length).fill(0).map(()=>({f:0,u:0})), ...pts] : pts;
+    drawStrip(ctx, 340, 180, 400, 100, full, 'f', '#0b7bc1', 'Feldlinien durch die Spule', 1.1);
+    drawStrip(ctx, 340, 290, 400, 100, full, 'u', '#c0392b', 'induzierte Spannung U', 2.2);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   SITZUNG 1 – Das Magnetfeld einer Spule
+   ===================================================================== */
+const FORMULA = `<span class="formula">B = <span class="frac"><span>μ₀ · N · I</span><span>L</span></span></span>`;
+
+function bAxis(z){ // field on axis of a finite coil (from teacher solution sheet)
+  const N=300,I=2,L=0.15,R=0.03; const a=z+L/2, b=z-L/2;
+  return MU0*N*I/(2*L)*(a/Math.sqrt(a*a+R*R) - b/Math.sqrt(b*b+R*R))*1000;
+}
+const GA_DATA=[[0,0],[0.5,1.2],[1,2.4],[1.5,3.5],[2,4.7],[2.5,5.9],[3,7.1]];
+
+const S1 = [
+ {t:'html', html:`<h1>Sitzung 1: Das Magnetfeld einer Spule</h1>
+  <p class="lead">Wiederholung von eurem Forschungsauftrag „150 – Magnetfeld Spule“. <span class="en">(review of the research task)</span></p>
+  <div class="box info"><div class="boxtitle">🎯 Das kannst du nach dieser Sitzung</div>
+  <ul><li>Du kannst erklären, wie man das Magnetfeld B einer Spule gut misst.</li>
+  <li>Du kennst die Ergebnisse der Gruppen A, B und C.</li>
+  <li>Du weißt: <b>Das Magnetfeld B in der Spule ist proportional zur Stromstärke I.</b></li>
+  <li>Du kannst mit der Formel B = μ₀·N·I / L rechnen.</li></ul></div>
+  <div class="box warn">So funktioniert es: Lies zuerst die Texte. Dann beantworte die Aufgaben. Für jede richtige Aufgabe bekommst du einen ⭐. Falsche Antworten werden gezählt – also erst denken, dann klicken! Nach 3 falschen Versuchen kannst du die Lösung sehen (dann aber ohne Stern).</div>`},
+
+ {t:'h2', text:'1.1 Wörter für heute', id:'s1-w'},
+ {t:'vocab', title:'Wörter: Spule und Magnetfeld', words:[
+   ['die Spule','coil'],['die Windung','turn (of wire)'],['die Windungszahl N','number of turns'],['die Achse','axis'],
+   ['senkrecht','perpendicular'],['der Abstand','distance'],['die Stromstärke I','electric current'],['das Magnetfeld','magnetic field'],
+   ['die Flussdichte B (in mT)','magnetic flux density'],['die Hall-Sonde','Hall probe'],['das Teslameter','teslameter (measures B)'],
+   ['messen / die Messung','to measure / measurement'],['der Messwert','measured value'],['der Mittelwert','average'],
+   ['zuverlässig','reliable'],['wiederholen','to repeat'],['die Fehlerquelle','source of error'],['umpolen','to reverse the polarity (+ / –)'],
+   ['befestigen','to fix, to attach'],['die Halterung','holder, mount'],['verschieben','to move, to shift'],['die Spitze','tip'],
+   ['der Aufbau','set-up'],['proportional','proportional'],['die Gerade','straight line']]},
+
+ {t:'h2', text:'1.2 Die Grundlagen', id:'s1-g'},
+ {t:'html', html:`<div class="card">
+  <p>Durch eine <span class="kw">Spule</span> fließt elektrischer Strom. Dann hat die Spule ein <span class="kw">Magnetfeld</span>. Ohne Strom gibt es kein Magnetfeld.</p>
+  <p>Wir messen das Magnetfeld mit einem <span class="kw">Teslameter</span>. Das Teslameter hat eine <span class="kw">Hall-Sonde</span>. Wichtig:</p>
+  <ul><li>Die Hall-Sonde misst das Magnetfeld <b>nur an ihrer Spitze</b>.</li>
+  <li>Die Hall-Sonde misst das Magnetfeld <b>nur in eine Richtung</b>. Wenn die Sonde kippt, ändert sich der Messwert.</li>
+  <li>Die Einheit von B ist <b>Tesla (T)</b>. Das Feld einer Schul-Spule ist klein. Darum benutzen wir <b>Millitesla (mT)</b>: &nbsp;1 mT = 0,001 T.</li></ul>
+  </div>`},
+ {t:'mc', id:'s1-g1', q:'Wann hat eine Spule ein Magnetfeld?', opts:['Wenn Strom durch die Spule fließt.','Immer, auch ohne Strom.','Nur wenn ein Eisenkern in der Spule ist.','Nur wenn die Spule warm ist.'], a:0,
+   explain:'Strom erzeugt ein Magnetfeld. Ohne Strom hat die Spule kein Magnetfeld.'},
+ {t:'mc', id:'s1-g2', q:'Wo misst die Hall-Sonde das Magnetfeld?', opts:['Nur an der Spitze der Sonde.','Auf der ganzen Länge der Sonde.','Im Teslameter (im Gerät).','Am Kabel.'], a:0,
+   explain:'Der Sensor sitzt vorne in der Spitze. Darum muss man genau wissen, wo die Spitze ist.'},
+ {t:'num', id:'s1-g3', q:'Rechne um: 4,7 mT = ? T', a:0.0047, unit:'T', dec:4, show:'0,0047', hint:'1 mT = 0,001 T. Teile durch 1000.', explain:'4,7 mT = 4,7 · 0,001 T = 0,0047 T.'},
+ {t:'num', id:'s1-g4', q:'Rechne um: 0,012 T = ? mT', a:12, unit:'mT', show:'12', hint:'1 T = 1000 mT. Multipliziere mit 1000.', explain:'0,012 T = 0,012 · 1000 mT = 12 mT.'},
+
+ {t:'h2', text:'1.3 Gut messen – wie Profis', id:'s1-m'},
+ {t:'html', html:`<div class="card">
+  <p><b>Das Problem:</b> Die Sonde bleibt nicht still! Schon eine kleine Bewegung verändert den Messwert. Mit der Hand kann man die Sonde nicht ruhig halten.</p>
+  <p><b>Gute Lösungen</b> aus eurer Klasse und von anderen Klassen:</p>
+  <ul><li>Die Sonde mit einem <b>Stativ</b> und einer Klemme <b>befestigen</b>.</li>
+  <li>Die Sonde auf ein <b>Lineal</b> oder eine Holzleiste kleben. Die Position am Lineal ablesen.</li>
+  <li>Oder umgekehrt: Die Sonde bleibt fest, und man <b>verschiebt die Spule</b> auf Millimeterpapier.</li>
+  <li>Ein <b>Messschieber</b> (caliper) hilft bei Millimeter-Schritten.</li>
+  <li>Das Display mit dem iPad filmen. Dann kann man später in Ruhe ablesen.</li></ul>
+  <p><b>Weitere Tipps:</b></p>
+  <ul><li><b>Ohne Strom</b> zeigt das Teslameter meistens <b>nicht 0</b>. Gründe: das Magnetfeld der Erde (ca. 0,05 mT), Eisen im Tisch, andere Gruppen. Darum: Wert ohne Strom messen und abziehen (= Nullabgleich).</li>
+  <li>Jeden Wert <b>mindestens 2-mal</b> messen und den <b>Mittelwert</b> bilden.</li>
+  <li>Die Spule wird warm. Dann wird die Stromstärke kleiner. Darum den Strom nur zum Messen einschalten und I kontrollieren.</li>
+  <li>Wo sich B schnell ändert, braucht man <b>kleine Schritte</b> (z. B. 1 mm).</li></ul></div>`},
+ {t:'mc', id:'s1-m1', q:'Ohne Strom zeigt das Teslameter 0,05 mT. Was ist der beste Grund?', opts:['Das Magnetfeld der Erde (und Eisen in der Nähe).','Die Spule hat noch Strom gespeichert.','Das Teslameter ist kaputt.','Die Sonde ist zu warm.'], a:0,
+   explain:'Die Erde hat ein Magnetfeld (etwa 0,05 mT). Auch Eisen oder andere Gruppen können stören. Darum macht man einen Nullabgleich.'},
+ {t:'num', id:'s1-m2', q:'Ihr messt an derselben Stelle zweimal: 4,6 mT und 4,8 mT. Wie groß ist der Mittelwert?', a:4.7, unit:'mT', show:'4,7', tol:0.005, hint:'Mittelwert = (Wert 1 + Wert 2) : 2', explain:'(4,6 mT + 4,8 mT) : 2 = 4,7 mT'},
+ {t:'num', id:'s1-m3', q:'Mit Strom misst das Teslameter 5,10 mT. Ohne Strom zeigt es an derselben Stelle 0,06 mT. Wie groß ist das Magnetfeld der Spule?', a:5.04, unit:'mT', show:'5,04', tol:0.003, hint:'Ziehe den Wert ohne Strom ab (Nullabgleich).', explain:'5,10 mT − 0,06 mT = 5,04 mT. Das ist das Feld, das nur von der Spule kommt.'},
+ {t:'mc', id:'s1-m4', q:'Die Sonde kippt ein bisschen. Der Messwert wird kleiner. Hat sich das Magnetfeld geändert?', opts:['Nein. Die Sonde misst nur in eine Richtung. Darum ändert sich der Messwert.','Ja, das Magnetfeld wird kleiner, wenn man die Sonde bewegt.','Ja, weil die Sonde das Magnetfeld stört.'], a:0,
+   explain:'Die Hall-Sonde misst nur einen Teil (eine Richtung) von B. Wenn sie kippt, misst sie einen anderen Teil. Darum muss die Sonde immer in die gleiche Richtung zeigen.'},
+ {t:'mc', id:'s1-m5', q:'Welche Punkte machen eure Messung zuverlässiger?', opts:['Jeden Wert mindestens 2-mal messen.','Die Sonde mit einem Stativ befestigen.','Den Wert ohne Strom messen und abziehen.','Magnete und Eisen weit weg legen.','Die Sonde mit der Hand halten.','Nur einen einzigen Messwert aufschreiben.'], a:[0,1,2,3],
+   explain:'Mehrfach messen, die Sonde fest machen, Nullabgleich und Störungen vermeiden – das macht die Messung zuverlässig.'},
+ {t:'mc', id:'s1-m6', q:'Ihr lasst den Strom lange an. Die Spule wird warm. Was passiert (bei gleicher Spannung am Netzgerät)?', opts:['Die Stromstärke wird kleiner, also wird auch B kleiner.','Die Stromstärke wird größer, also wird B größer.','Nichts, die Temperatur ist egal.'], a:0,
+   explain:'Ein warmer Draht hat einen größeren Widerstand. Dann fließt weniger Strom. Weniger Strom → kleineres Magnetfeld. Darum: Strom nur zum Messen einschalten.'},
+
+ {t:'h2', text:'1.4 Die Ergebnisse der Gruppen', id:'s1-e'},
+ {t:'h3', text:'Gruppe A: Wie ändert sich B, wenn die Stromstärke I größer wird?'},
+ {t:'html', html:`<div class="card">
+   ${graph({x:[0,3,0.5], y:[0,8,1], xl:'I in A', yl:'B in mT', w:440, h:260, series:[{pts:[[0,0],[3,7.1]], color:'#9fb6d3', width:2, dash:true},{pts:GA_DATA, dots:true, color:'#0b7bc1', width:0}], caption:'Messwerte einer Gruppe (Mitte der Spule, N = 300, L = 15 cm)'})}
+   <p>Die Messpunkte liegen auf einer <b>Geraden durch den Ursprung</b> (0 | 0). Das bedeutet: <b>B ist proportional zu I</b>.</p>
+   <ul><li>Doppelte Stromstärke → doppeltes Magnetfeld.</li><li>Dreifache Stromstärke → dreifaches Magnetfeld.</li>
+   <li><b>Umpolen</b> (+ und – tauschen): Das Magnetfeld zeigt in die andere Richtung. Das Teslameter zeigt dann einen <b>negativen</b> Wert.</li></ul></div>
+   <div class="box merke"><div class="boxtitle">Merke</div>Das Magnetfeld B in einer Spule ist <b>proportional</b> zur Stromstärke I: &nbsp;<b>B ~ I</b>.<br>Je größer die Stromstärke, desto größer das Magnetfeld.</div>`},
+ {t:'num', id:'s1-a1', q:'Lies im Diagramm ab: Wie groß ist B bei I = 2 A?', a:4.7, unit:'mT', show:'4,7', tol:0.03, explain:'Bei I = 2 A liegt der Messpunkt bei B = 4,7 mT.'},
+ {t:'num', id:'s1-a2', q:'B ist proportional zu I. Wie groß ist B (ungefähr) bei I = 4 A? Benutze den Wert aus der letzten Aufgabe.', a:9.4, unit:'mT', show:'9,4', tol:0.03, hint:'4 A ist doppelt so viel wie 2 A.', explain:'Doppelte Stromstärke → doppeltes Feld: 2 · 4,7 mT = 9,4 mT.'},
+ {t:'cloze', id:'s1-a3', q:'Ergänze den „Je …, desto …“-Satz von Gruppe A.', lines:['Je {*größer|kleiner} die Stromstärke I ist, desto {*größer|kleiner} ist das Magnetfeld B.','Wenn man die Stromstärke halbiert, dann wird B {doppelt so groß|*halb so groß|gleich groß}.'], explain:'B ~ I: mehr Strom → mehr Feld, halber Strom → halbes Feld.'},
+ {t:'mc', id:'s1-a4', q:'Gruppe A polt den Strom um (+ und – tauschen). Bei I = 2 A zeigt das Teslameter vorher +4,7 mT. Was zeigt es nachher?', opts:['−4,7 mT','+4,7 mT','0 mT','+9,4 mT'], a:0,
+   explain:'Beim Umpolen dreht sich die Richtung des Magnetfeldes um. Der Betrag bleibt gleich, das Vorzeichen wechselt: −4,7 mT.'},
+ {t:'mc', id:'s1-a5', q:'Welcher Satz beschreibt „B ist proportional zu I“ richtig?', opts:['Der Graph von B gegen I ist eine Gerade durch den Ursprung.','Der Graph von B gegen I ist eine waagerechte Linie.','Wenn I größer wird, wird B kleiner.','B ist immer gleich groß wie I.'], a:0,
+   explain:'Proportional bedeutet: Gerade durch den Ursprung. Der Quotient B : I ist immer gleich.'},
+
+ {t:'h3', text:'Gruppe B: Wie ändert sich B entlang der Achse?'},
+ {t:'html', html:`<div class="card">
+   ${graph({x:[-15,15,5], y:[0,6,1], xl:'z in cm', yl:'B in mT', w:460, h:260, fn:null, series:[{fn:z=>bAxis(z/100), color:'#0b7bc1'}], bands:[[-7.5,7.5,'#fdeedd','Spule']], caption:'z = 0 ist die Mitte der Spule. Die Spule geht von −7,5 cm bis +7,5 cm (I bleibt gleich).'})}
+   <ul><li>In der Spule ist B <b>fast konstant</b> (ein „Plateau“). In der Mitte ist B am größten.</li>
+   <li>Am <b>Ende der Spule</b> ist B nur noch etwa <b>halb so groß</b> wie in der Mitte.</li>
+   <li>Außerhalb der Spule wird B schnell kleiner.</li>
+   <li>Der Graph ist <b>symmetrisch</b> zur Mitte.</li>
+   <li>An den Enden ändert sich B schnell. Dort braucht man kleine Schritte (mm-Schritte).</li></ul></div>`},
+ {t:'mc', id:'s1-b1', q:'Wo ist B entlang der Achse am größten?', opts:['In der Mitte der Spule.','Am Ende der Spule.','Weit außerhalb der Spule.','Überall gleich, auch außerhalb.'], a:0, explain:'In der Mitte ist das Feld am stärksten. Innen ist es fast konstant.'},
+ {t:'num', id:'s1-b2', q:'In der Mitte der Spule misst Gruppe B 4,8 mT. Etwa wie groß ist B am Ende der Spule?', a:2.4, unit:'mT', show:'2,4', tol:0.1, hint:'Am Ende ist das Feld etwa halb so groß.', explain:'Am Spulenende ist B etwa die Hälfte: 4,8 mT : 2 = 2,4 mT.'},
+ {t:'mc', id:'s1-b3', q:'Wo lohnen sich Millimeter-Schritte am meisten?', opts:['An den Enden der Spule – dort ändert sich B schnell.','In der Mitte – dort ist B am größten.','Weit weg von der Spule.'], a:0, explain:'Wo sich B schnell ändert (an den Enden), braucht man kleine Schritte. In der Mitte reichen große Schritte, weil B fast konstant ist.'},
+
+ {t:'h3', text:'Gruppe C: Wie ändert sich B senkrecht zur Achse?'},
+ {t:'html', html:`<div class="card">
+   ${graph({x:[0,6,1], y:[-1,5,1], xl:'x in cm', yl:'B in mT', w:460, h:260, series:[{pts:[[0,4.65],[1,4.66],[2,4.68],[2.8,4.7],[3.0,2.2],[3.2,-0.35],[4,-0.26],[5,-0.22],[6,-0.19]], color:'#0b7bc1'}], bands:[[2.9,3.1,'#e8b98f','Draht']], caption:'Messlinie in der Mitte der Spule. x = 0 ist auf der Achse. Bei x = 3 cm ist die Wicklung.'})}
+   <ul><li>In der Spule ist B <b>überall fast gleich groß</b>. Man sagt: Das Feld ist <b>homogen</b> (homogeneous).</li>
+   <li>An der Wicklung wechselt das <b>Vorzeichen</b>.</li>
+   <li>Außerhalb ist B <b>klein</b> und zeigt in die <b>andere Richtung</b> (negativ). Die Feldlinien schließen sich außen.</li></ul></div>`},
+ {t:'cloze', id:'s1-c1', q:'Ergänze die Sätze zu Gruppe C.', lines:['In der Spule ist das Magnetfeld überall {*fast gleich groß|an der Achse null|an der Wicklung doppelt so groß}.','Außerhalb der Spule ist das Magnetfeld {*klein und negativ|groß und positiv|genau null}.','Ein Feld, das überall gleich ist, heißt {*homogen|proportional|senkrecht}.'], explain:'Innen: homogen. Außen: klein und mit anderem Vorzeichen.'},
+ {t:'mc', id:'s1-c2', q:'Anwendung: Im Krankenhaus gibt es den MRT (magnetic resonance imaging). Der Patient liegt <b>in</b> einer großen Spule. Warum ist das gut?', opts:['In der Spule ist das Feld stark und homogen (überall gleich).','Außerhalb der Spule ist das Feld am stärksten.','In der Spule gibt es kein Magnetfeld.'], a:0,
+   explain:'Innen ist das Feld stark und fast überall gleich. Das braucht man für gute Bilder.'},
+
+ {t:'h2', text:'1.5 Die Formel für eine lange Spule', id:'s1-f'},
+ {t:'html', html:`<div class="card center">${FORMULA}</div>
+  <div class="card"><table class="vocab"><thead><tr><th>Zeichen</th><th>Bedeutung</th><th>Einheit</th></tr></thead><tbody>
+   <tr><td class="de">B</td><td>Magnetfeld (Flussdichte) in der Spule <span class="en">magnetic flux density</span></td><td>T (Tesla)</td></tr>
+   <tr><td class="de">μ₀</td><td>magnetische Feldkonstante: μ₀ = 1,26 · 10⁻⁶ T·m/A <span class="en">magnetic constant</span></td><td>T·m/A</td></tr>
+   <tr><td class="de">N</td><td>Windungszahl (Anzahl der Windungen) <span class="en">number of turns</span></td><td>–</td></tr>
+   <tr><td class="de">I</td><td>Stromstärke <span class="en">current</span></td><td>A (Ampere)</td></tr>
+   <tr><td class="de">L</td><td>Länge der Spule <span class="en">length of the coil</span></td><td>m (Meter!)</td></tr></tbody></table>
+   <p><b>Wichtig:</b> Die Länge L immer in <b>Meter</b> einsetzen. Dann bekommst du B in <b>Tesla</b>. Für mT: mal 1000.</p>
+   <p>In der Formel siehst du: <b>I steht im Zähler</b> (oben). Darum gilt B ~ I – genau wie bei Gruppe A!</p></div>
+   <div class="box info"><div class="boxtitle">Beispiel</div>N = 300, L = 15 cm = 0,15 m, I = 2 A<br>
+   B = 1,26·10⁻⁶ T·m/A · 300 · 2 A : 0,15 m = 0,00504 T = <b>5,0 mT</b></div>`},
+ {t:'custom', render:simCoilB},
+ {t:'mc', id:'s1-f1', q:'In der Formel steht I im Zähler (oben). Was bedeutet das?', opts:['Wenn I doppelt so groß wird, wird B doppelt so groß.','Wenn I doppelt so groß wird, wird B halb so groß.','B hängt nicht von I ab.'], a:0, explain:'Größen im Zähler: B wächst mit ihnen. B ist proportional zu I.'},
+ {t:'mc', id:'s1-f2', q:'Die Spule wird doppelt so lang. Die Windungszahl N und die Stromstärke I bleiben gleich. Was passiert mit B?', opts:['B wird halb so groß.','B wird doppelt so groß.','B bleibt gleich.'], a:0, explain:'L steht im Nenner (unten). Doppeltes L → halbes B. Die Windungen liegen weiter auseinander.'},
+ {t:'mc', id:'s1-f3', q:'Man verdoppelt N und verdoppelt auch L. I bleibt gleich. Was passiert mit B?', opts:['B bleibt gleich.','B wird doppelt so groß.','B wird viermal so groß.','B wird halb so groß.'], a:0, explain:'Zähler mal 2 und Nenner mal 2 – das hebt sich auf. Die Windungen pro Meter (N/L) bleiben gleich.'},
+ {t:'num', id:'s1-f4', q:'Eine Spule hat N = 500 Windungen und ist L = 25 cm lang. Es fließt I = 1,5 A. Berechne B in mT.', a:3.78, unit:'mT', show:'3,78', tol:0.03, hint:'L = 25 cm = 0,25 m. Rechne B in T und dann mal 1000.', explain:'B = 1,26·10⁻⁶ · 500 · 1,5 / 0,25 T = 0,00378 T = 3,78 mT.'},
+ {t:'num', id:'s1-f5', q:'Eine Spule hat N = 600 Windungen, L = 20 cm. Es fließt I = 1,6 A. Welchen Wert erwartest du in der Mitte? (in mT)', a:6.05, unit:'mT', show:'6,05', tol:0.03, hint:'L in Meter: 0,20 m.', explain:'B = 1,26·10⁻⁶ · 600 · 1,6 / 0,20 T ≈ 0,00605 T ≈ 6,0 mT.'},
+ {t:'num', id:'s1-f6', q:'Ohne Formel: Bei I = 0,5 A misst man B = 1,2 mT. Wie groß ist B bei I = 2,0 A?', a:4.8, unit:'mT', show:'4,8', tol:0.02, hint:'2,0 A ist viermal so viel wie 0,5 A.', explain:'B ~ I: 4-fache Stromstärke → 4-faches Feld: 4 · 1,2 mT = 4,8 mT.'},
+ {t:'num', id:'s1-f7', q:'Umstellen: Eine Spule hat N = 1000 Windungen und L = 30 cm. Welche Stromstärke braucht man für B = 10 mT?', a:2.38, unit:'A', show:'2,38', tol:0.03, hint:'I = B · L / (μ₀ · N). B in Tesla: 10 mT = 0,010 T.', explain:'I = 0,010 T · 0,30 m / (1,26·10⁻⁶ T·m/A · 1000) ≈ 2,38 A.'},
+ {t:'num', id:'s1-f8', q:'Profi: Eine Spule ist L = 50 cm lang. Bei I = 1,0 A misst man in der Mitte B = 2,5 mT. Wie viele Windungen hat die Spule (ungefähr)?', a:992, unit:'Windungen', show:'≈ 1000', tol:0.04, hint:'N = B · L / (μ₀ · I).', explain:'N = 0,0025 T · 0,50 m / (1,26·10⁻⁶ T·m/A · 1,0 A) ≈ 990 ≈ 1000 Windungen.'},
+ {t:'num', id:'s1-f9', q:'Profi: Für Gruppe A (N = 300, L = 0,15 m) gilt B = m · I. Berechne die Steigung m = μ₀ · N / L in mT pro A.', a:2.52, unit:'mT/A', show:'2,52', tol:0.03, hint:'m = 1,26·10⁻⁶ · 300 / 0,15 (in T/A) – dann mal 1000.', explain:'m = 1,26·10⁻⁶ · 300 / 0,15 T/A = 0,00252 T/A = 2,52 mT/A. Die Messung ergab etwa 2,35 mT/A. Das ist etwas weniger, weil die echte Spule nicht unendlich lang ist.'},
+
+ {t:'h2', text:'1.6 Anwendungen', id:'s1-an'},
+ {t:'html', html:`<div class="card"><p><b>Der Elektromagnet</b> (electromagnet): Auf dem Schrottplatz hebt ein Kran mit einem großen Elektromagneten Autos aus Eisen hoch. Ein Elektromagnet ist eine Spule (meistens mit Eisenkern). Der Vorteil: Man kann ihn <b>ein- und ausschalten</b> und seine Stärke mit der Stromstärke <b>einstellen</b>.</p></div>`},
+ {t:'mc', id:'s1-an1', q:'Wie lässt der Kran das Auto wieder fallen?', opts:['Man schaltet den Strom aus.','Man macht den Strom größer.','Man dreht den Kran.'], a:0, explain:'Ohne Strom hat die Spule kein Magnetfeld mehr. Das Auto fällt.'},
+ {t:'mc', id:'s1-an2', q:'Wie kann man das Magnetfeld einer Spule stärker machen?', opts:['Die Stromstärke vergrößern.','Mehr Windungen auf die gleiche Länge wickeln.','Die gleichen Windungen auf eine kürzere Spule wickeln.','Die Spule länger machen (gleiche Windungszahl).','Die Stromstärke verkleinern.'], a:[0,1,2],
+   explain:'Mit der Formel: B wird größer, wenn I oder N größer wird oder wenn L kleiner wird.'},
+
+ {t:'h2', text:'1.7 Wörter-Test', id:'s1-wt'},
+ {t:'match', id:'s1-v1', q:'Was heißt das auf Englisch?', pairs:[['die Spule','coil'],['die Windung','turn (of wire)'],['die Stromstärke','current'],['senkrecht','perpendicular'],['der Mittelwert','average'],['die Fehlerquelle','source of error']]},
+ {t:'match', id:'s1-v2', q:'Was heißt das auf Deutsch?', reverse:true, pairs:[['die Achse','axis'],['der Messwert','measured value'],['zuverlässig','reliable'],['umpolen','to reverse the polarity'],['die Halterung','holder, mount'],['verschieben','to move, to shift']]},
+ {t:'cloze', id:'s1-v3', q:'Setze das richtige Wort ein.', lines:[
+   'Wir messen das Magnetfeld mit einer {*Hall-Sonde|Spule|Windung}.',
+   'Wir messen jeden Wert zweimal und bilden den {*Mittelwert|Abstand|Aufbau}.',
+   'Gruppe C misst {*senkrecht|parallel} zur Achse der Spule.',
+   'Wenn man + und – tauscht, dann {*polt|misst|befestigt} man den Strom um.']},
+ {t:'html', html:`<div class="box merke"><div class="boxtitle">✅ Zusammenfassung Sitzung 1</div>
+   <ul><li>Eine Spule mit Strom hat ein Magnetfeld. Innen ist es stark und fast homogen.</li>
+   <li><b>B ist proportional zu I.</b> Der Graph B gegen I ist eine Ursprungsgerade.</li>
+   <li>Lange Spule: B = μ₀ · N · I / L.</li>
+   <li>Gut messen: Sonde befestigen, Nullabgleich, mehrfach messen, Mittelwert bilden.</li></ul>
+   <p class="saveHint">💾 <b>Speichere jetzt deinen Fortschritt!</b></p></div>`}
+];
+
+/* =====================================================================
+   SITZUNG 2 – Graphen lesen
+   ===================================================================== */
+const G1=[[0,1],[2,5],[5,5],[7,1],[10,1]];
+const G2=[[0,0],[2,2],[3,6],[6,6],[8,0]];
+const G3=t=>3+2*Math.sin(Math.PI*t/4);
+const G4=[[0,4],[3,4],[5,0],[8,0]];
+const mini=(pts,o={})=>graph({x:[0,4,1], y:o.y||[0,4,1], xl:o.xl||'I in A', yl:o.yl||'B in mT', w:230, h:160, ml:34, series:[{pts, fn:o.fn, color:'#0b7bc1'}], noXnum:true, noYnum:true});
+
+const S2 = [
+ {t:'html', html:`<h1>Sitzung 2: Graphen lesen</h1>
+  <p class="lead">Heute ist Mathematik dran. Du lernst, wie man einen Graphen beschreibt. Das brauchst du in Sitzung 3 für die Induktion. <span class="en">(how to describe a graph)</span></p>
+  <div class="box info"><div class="boxtitle">🎯 Das kannst du nach dieser Sitzung</div>
+  <ul><li>Du kannst Werte aus einem Graphen ablesen.</li>
+  <li>Du kannst sagen: „Der Graph ist zwischen … und … steigend / fallend / konstant.“</li>
+  <li>Du kannst sagen, wo ein Graph am steilsten ist.</li>
+  <li>Du kannst die Änderungsrate berechnen (wie schnell sich etwas ändert).</li></ul></div>`},
+
+ {t:'h2', text:'2.1 Wörter für heute', id:'s2-w'},
+ {t:'vocab', title:'Wörter: Graphen', words:[
+   ['der Graph','graph'],['die x-Achse (Rechtsachse)','x-axis (horizontal)'],['die y-Achse (Hochachse)','y-axis (vertical)'],
+   ['der Wert','value'],['ablesen','to read off'],['der Zeitpunkt','moment, instant'],['der Zeitraum / das Intervall','period of time / interval'],
+   ['zwischen … und …','between … and …'],['steigend','increasing'],['fallend','decreasing'],['konstant','constant'],
+   ['monoton steigend','monotonically increasing (never goes down)'],['steil','steep'],['flach','flat, gentle'],['waagerecht','horizontal'],
+   ['die Steigung','slope, gradient'],['der Hochpunkt','maximum (highest point)'],['der Tiefpunkt','minimum (lowest point)'],
+   ['die Änderung','change'],['sich ändern','to change'],['die Änderungsrate','rate of change'],['zunehmen / abnehmen','to increase / to decrease'],
+   ['die Ursprungsgerade','straight line through the origin']]},
+
+ {t:'h2', text:'2.2 Einen Graphen beschreiben', id:'s2-b'},
+ {t:'html', html:`<div class="card">
+   <p>Wir lesen einen Graphen immer <b>von links nach rechts</b> – so wie die Zeit vergeht.</p>
+   <div class="grid2">
+    <div>${graph({x:[0,4,1],y:[0,4,1],xl:'t in s',yl:'B',w:220,h:150,ml:34,pts:[[0,0.5],[4,3.5]],noXnum:true,noYnum:true})}<div class="center"><b>steigend</b><br><span class="small">Der Graph geht nach oben. B nimmt zu.</span></div></div>
+    <div>${graph({x:[0,4,1],y:[0,4,1],xl:'t in s',yl:'B',w:220,h:150,ml:34,pts:[[0,3.5],[4,0.5]],color:'#c0392b',noXnum:true,noYnum:true})}<div class="center"><b>fallend</b><br><span class="small">Der Graph geht nach unten. B nimmt ab.</span></div></div>
+    <div>${graph({x:[0,4,1],y:[0,4,1],xl:'t in s',yl:'B',w:220,h:150,ml:34,pts:[[0,2],[4,2]],color:'#1f9d55',noXnum:true,noYnum:true})}<div class="center"><b>konstant</b><br><span class="small">Der Graph ist waagerecht. B ändert sich nicht.</span></div></div>
+    <div>${graph({x:[0,4,1],y:[0,4,1],xl:'t in s',yl:'B',w:220,h:150,ml:34,series:[{pts:[[0,0.5],[4,1.3]],color:'#0b7bc1'},{pts:[[0,0.5],[1.3,3.8]],color:'#6b4fbb'}],noXnum:true,noYnum:true})}<div class="center"><b>steil</b> (lila) und <b>flach</b> (blau)<br><span class="small">Steil = schnelle Änderung.</span></div></div>
+   </div>
+   <p><b>Satzbausteine</b> <span class="en">(sentence starters)</span>:</p>
+   <ul><li>„Der Graph ist <b>zwischen</b> 0 s <b>und</b> 2 s <b>steigend</b>.“</li>
+   <li>„<b>Von</b> 2 s <b>bis</b> 5 s ist der Graph <b>konstant</b>.“</li>
+   <li>„<b>Zwischen</b> 5 s <b>und</b> 7 s <b>fällt</b> der Graph. B <b>nimmt ab</b>.“</li>
+   <li>„<b>Bei</b> t = 2 s hat der Graph einen <b>Hochpunkt</b>.“</li></ul></div>
+   <div class="box info"><div class="boxtitle">🧐 Für Profis: „monoton“</div>
+   Mathematiker sind sehr genau:<br>
+   <b>monoton steigend</b> heißt: Der Graph geht <i>nie nach unten</i>. Er darf aber auch mal waagerecht (konstant) sein.<br>
+   <b>streng monoton steigend</b> heißt: Der Graph geht <i>immer nach oben</i>.<br>
+   Genauso: <b>(streng) monoton fallend</b>.</div>`},
+ {t:'html', html:`<div class="card">${graph({x:[0,10,1], y:[0,6,1], xl:'t in s', yl:'B in mT', w:480, h:260, pts:G1, caption:'Graph 1: Das Magnetfeld B in einer Spule ändert sich mit der Zeit t.'})}</div>`},
+ {t:'cloze', id:'s2-b1', q:'Beschreibe Graph 1.', lines:[
+   'Zwischen 0 s und 2 s ist der Graph {*steigend|fallend|konstant}.',
+   'Zwischen 2 s und 5 s ist der Graph {steigend|fallend|*konstant}.',
+   'Zwischen 5 s und 7 s ist der Graph {steigend|*fallend|konstant}.',
+   'Zwischen 7 s und 10 s ist der Graph {steigend|fallend|*konstant}.'], explain:'Nach oben = steigend, nach unten = fallend, waagerecht = konstant.'},
+ {t:'num', id:'s2-b2', q:'Lies ab: Wie groß ist B bei t = 1 s (Graph 1)?', a:3, unit:'mT', show:'3', abs:0.15, explain:'Bei t = 1 s ist der Graph genau in der Mitte zwischen 1 mT und 5 mT: B = 3 mT.'},
+ {t:'num', id:'s2-b3', q:'Lies ab: Wie groß ist B bei t = 6 s (Graph 1)?', a:3, unit:'mT', show:'3', abs:0.15, explain:'Zwischen 5 s und 7 s fällt B von 5 mT auf 1 mT. Bei 6 s (Mitte) ist B = 3 mT.'},
+ {t:'cloze', id:'s2-b4', q:'Ergänze die Sätze zu Graph 1.', lines:[
+   'Von 0 s bis 2 s {*nimmt|bleibt} B {*zu|ab|gleich}.',
+   'Der größte Wert von B ist {3 mT|*5 mT|10 mT}.',
+   'Zwischen 2 s und 5 s {ändert sich B|*ändert sich B nicht}.'], explain:'B nimmt von 1 mT auf 5 mT zu. Danach bleibt es 3 Sekunden lang konstant bei 5 mT.'},
+ {t:'mc', id:'s2-b5', q:'Welcher Satz beschreibt diesen Graphen richtig?<br>'+graph({x:[0,8,1],y:[0,5,1],xl:'t in s',yl:'B in mT',w:380,h:210,pts:G4}),
+   opts:['Der Graph ist zuerst konstant, dann fallend, dann wieder konstant.','Der Graph ist zuerst steigend, dann konstant.','Der Graph ist immer fallend.','Der Graph ist zuerst fallend, dann steigend.'], a:0,
+   explain:'0–3 s: konstant (4 mT). 3–5 s: fallend. 5–8 s: konstant (0 mT).'},
+
+ {t:'h2', text:'2.3 Steil oder flach? Die Änderungsrate', id:'s2-s'},
+ {t:'html', html:`<div class="card">
+   <p>Ein <b>steiler</b> Graph bedeutet: B ändert sich <b>schnell</b>. Ein <b>flacher</b> Graph bedeutet: B ändert sich <b>langsam</b>.</p>
+   <p>Wie schnell? Das sagt die <b>Änderungsrate</b> <span class="en">(rate of change)</span>:</p>
+   <div class="center"><span class="formula small">Änderungsrate = <span class="frac"><span>Änderung von B</span><span>Zeit</span></span></span></div>
+   <p><b>Beispiel (Graph 1):</b> Zwischen 0 s und 2 s nimmt B von 1 mT auf 5 mT zu. Die Änderung ist 4 mT. Die Zeit ist 2 s.<br>
+   Änderungsrate = 4 mT : 2 s = <b>2 mT pro Sekunde</b> (2 mT/s).</p>
+   <p>Wenn der Graph <b>konstant</b> ist, ist die Änderungsrate <b>null</b>.</p></div>
+   <div class="card">${graph({x:[0,8,1], y:[0,7,1], xl:'t in s', yl:'B in mT', w:480, h:260, pts:G2, caption:'Graph 2'})}</div>`},
+ {t:'mc', id:'s2-s1', q:'In welchem Intervall ist Graph 2 am <b>steilsten</b>?', opts:['zwischen 2 s und 3 s','zwischen 0 s und 2 s','zwischen 3 s und 6 s','zwischen 6 s und 8 s'], a:0,
+   explain:'Zwischen 2 s und 3 s steigt B um 4 mT in nur 1 s. Das ist die schnellste Änderung (4 mT/s).'},
+ {t:'num', id:'s2-s2', q:'Berechne die Änderungsrate von Graph 2 zwischen 0 s und 2 s.', a:1, unit:'mT/s', show:'1', abs:0.05, hint:'Änderung von B: von 0 mT auf 2 mT. Zeit: 2 s.', explain:'2 mT : 2 s = 1 mT/s.'},
+ {t:'num', id:'s2-s3', q:'Um wie viel mT pro Sekunde nimmt B in Graph 2 zwischen 6 s und 8 s <b>ab</b>?', a:3, unit:'mT/s', show:'3', abs:0.05, hint:'B fällt von 6 mT auf 0 mT in 2 s.', explain:'6 mT : 2 s = 3 mT/s. (Weil B abnimmt, schreibt man auch −3 mT/s.)'},
+ {t:'cloze', id:'s2-s4', q:'Ergänze für Graph 2.', lines:[
+   'Zwischen 3 s und 6 s ist die Änderungsrate {*null|1 mT/s|6 mT/s}, weil der Graph {*konstant|steigend|fallend} ist.',
+   'Zwischen 6 s und 8 s ist der Graph {steigend|*fallend|konstant}.',
+   'Der Graph ist zwischen 0 s und 2 s {*flacher|steiler} als zwischen 2 s und 3 s.']},
+
+ {t:'h2', text:'2.4 Kurven: Hochpunkt und Tiefpunkt', id:'s2-k'},
+ {t:'html', html:`<div class="card">${graph({x:[0,10,1], y:[0,6,1], xl:'t in s', yl:'B in mT', w:480, h:260, fn:G3, series:[{fn:G3,color:'#0b7bc1'}], caption:'Graph 3: Eine Kurve'})}
+  <p>Am <b>Hochpunkt</b> ist der Graph am höchsten. Am <b>Tiefpunkt</b> ist er am niedrigsten. Genau dort ist die Kurve für einen kurzen Moment <b>waagerecht</b>. Dort ändert sich B (für einen Moment) nicht.</p></div>`},
+ {t:'num', id:'s2-k1', q:'Bei welchem Zeitpunkt hat Graph 3 einen Hochpunkt? (zwischen 0 s und 5 s)', a:2, unit:'s', show:'2', abs:0.25, explain:'Bei t = 2 s ist B am größten (5 mT).'},
+ {t:'num', id:'s2-k2', q:'Bei welchem Zeitpunkt hat Graph 3 einen Tiefpunkt?', a:6, unit:'s', show:'6', abs:0.25, explain:'Bei t = 6 s ist B am kleinsten (1 mT).'},
+ {t:'cloze', id:'s2-k3', q:'Beschreibe Graph 3.', lines:[
+   'Zwischen 0 s und 2 s ist der Graph {*steigend|fallend|konstant}.',
+   'Zwischen 2 s und 6 s ist der Graph {steigend|*fallend|konstant}.',
+   'Zwischen 6 s und 10 s ist der Graph {*steigend|fallend|konstant}.',
+   'Am Hochpunkt ist der Graph für einen Moment {*waagerecht|sehr steil|senkrecht}.',
+   'Der Graph ist am steilsten bei {t = 2 s|*t = 4 s|t = 6 s}.'], explain:'Bei t = 4 s fällt die Kurve am schnellsten. An Hoch- und Tiefpunkt ist sie waagerecht.'},
+
+ {t:'h2', text:'2.5 Proportional – die Ursprungsgerade', id:'s2-p'},
+ {t:'html', html:`<div class="card"><p>Erinnerst du dich an Sitzung 1? <b>B ist proportional zu I.</b> Der Graph ist eine <b>Gerade durch den Ursprung</b> (0 | 0). Man sagt: eine <b>Ursprungsgerade</b>.</p></div>`},
+ {t:'mc', id:'s2-p1', q:'Welcher Graph zeigt: „B ist proportional zu I“?', graphs:true,
+   opts:[mini([[0,0],[4,3.6]]), mini([[0,1.2],[4,3.8]]), mini(null,{fn:x=>0.22*x*x}), mini([[0,2],[4,2]])], a:0,
+   explain:'Nur die Gerade durch den Ursprung zeigt Proportionalität. Die zweite Gerade beginnt nicht bei 0.'},
+ {t:'mc', id:'s2-p2', q:'Eine Gruppe misst B gegen I. Der Graph ist eine Gerade, aber er beginnt bei B = 0,05 mT (nicht bei 0). Was ist der wahrscheinliche Grund?', opts:['Sie haben keinen Nullabgleich gemacht (z. B. Erdmagnetfeld).','B ist nicht proportional zu I.','Die Spule ist zu lang.'], a:0,
+   explain:'Das Teslameter zeigt auch ohne Strom etwas an (Erdfeld, Eisen). Nach dem Nullabgleich geht die Gerade durch den Ursprung.'},
+
+ {t:'h2', text:'2.6 Wörter-Test', id:'s2-wt'},
+ {t:'match', id:'s2-v1', q:'Was heißt das auf Englisch?', pairs:[['steigend','increasing'],['fallend','decreasing'],['konstant','constant'],['steil','steep'],['der Hochpunkt','maximum'],['die Änderungsrate','rate of change']]},
+ {t:'match', id:'s2-v2', q:'Was heißt das auf Deutsch?', reverse:true, pairs:[['ablesen','to read off'],['der Tiefpunkt','minimum'],['waagerecht','horizontal'],['zunehmen','to increase'],['die Steigung','slope'],['die Ursprungsgerade','straight line through the origin']]},
+
+ {t:'h2', text:'2.7 Ausblick: Graphen und Physik', id:'s2-a'},
+ {t:'html', html:`<div class="box material"><div class="boxtitle">🔭 Ein Blick auf Sitzung 3</div>
+  In Sitzung 3 lernst du: In einer Spule wird eine <b>Spannung</b> erzeugt (man sagt: <b>induziert</b>), <b>wenn sich das Magnetfeld in der Spule ändert</b>.<br>
+  Das heißt für den Graphen von B:<ul>
+  <li>Graph <b>steigend</b> oder <b>fallend</b> → B ändert sich → es gibt eine Spannung.</li>
+  <li>Graph <b>konstant</b> → B ändert sich nicht → <b>keine</b> Spannung.</li>
+  <li>Graph <b>steil</b> → B ändert sich schnell → <b>große</b> Spannung.</li></ul>
+  Du kannst Graphen jetzt lesen. Also kannst du das schon ausprobieren!</div>`},
+ {t:'mc', id:'s2-a1', q:'Schau auf Graph 1 (oben). In welchen Intervallen ändert sich B – also: wo gibt es eine Spannung?', opts:['zwischen 0 s und 2 s','zwischen 2 s und 5 s','zwischen 5 s und 7 s','zwischen 7 s und 10 s'], a:[0,2], noShuffle:true,
+   explain:'B ändert sich nur, wenn der Graph steigt (0–2 s) oder fällt (5–7 s). Wo der Graph konstant ist, gibt es keine Spannung.'},
+ {t:'mc', id:'s2-a2', q:'Schau auf Graph 2. Wo erwartest du die <b>größte</b> Spannung?', opts:['zwischen 2 s und 3 s','zwischen 0 s und 2 s','zwischen 3 s und 6 s','zwischen 6 s und 8 s'], a:0, noShuffle:true,
+   explain:'Am steilsten Teil ändert sich B am schnellsten. Dort ist die Spannung am größten.'},
+ {t:'html', html:`<div class="box merke"><div class="boxtitle">✅ Zusammenfassung Sitzung 2</div>
+   <ul><li>Graph geht nach oben: <b>steigend</b>. Nach unten: <b>fallend</b>. Waagerecht: <b>konstant</b>.</li>
+   <li>„Der Graph ist zwischen … und … steigend.“</li>
+   <li>Steil = schnelle Änderung. Änderungsrate = Änderung : Zeit.</li>
+   <li>Am Hoch- und Tiefpunkt ist der Graph kurz waagerecht.</li></ul>
+   <p class="saveHint">💾 <b>Speichere jetzt deinen Fortschritt!</b></p></div>`}
+];
+
+/* =====================================================================
+   SITZUNG 3 – Elektromagnetische Induktion
+   ===================================================================== */
+function countIn(o){ let n=0; const [c0,r0,c1,r1]=o.coil; for(let r=r0;r<=r1;r++) for(let c=c0;c<=c1;c++) if(o.field(c,r)) n++; return n; }
+const ALL=()=>true, SPARSE=(c,r)=>c%2===1&&r%2===1;
+const FP = {
+  A1:{cols:9,rows:6,field:ALL,coil:[1,1,5,4],meter:true},
+  A2:{cols:9,rows:6,field:SPARSE,region:ALL,coil:[1,1,5,4],meter:true},
+  B1:{cols:9,rows:6,field:(c,r)=>c<=6,coil:[1,1,5,4],meter:true},
+  B2:{cols:9,rows:6,field:(c,r)=>c<=6,coil:[4,1,8,4],meter:true},
+  C1:{cols:10,rows:6,field:ALL,coil:[1,2,5,4],meter:true},
+  C2:{cols:10,rows:6,field:ALL,coil:[3,1,7,3],meter:true},
+  D0:{cols:9,rows:6,field:()=>false,coil:[1,1,5,4],meter:true},
+};
+const fp=(k,label)=>fieldPic({...FP[k],label});
+const nA1=countIn(FP.A1), nA2=countIn(FP.A2), nB1=countIn(FP.B1), nB2=countIn(FP.B2), nC1=countIn(FP.C1), nC2=countIn(FP.C2);
+const pair=(a,b)=>`<div class="fieldpics">${a}<span class="arrow">➜</span>${b}</div>`;
+const pairV=(a,b)=>`<div class="fieldpics" style="flex-direction:column;gap:4px"><div class="small">vorher</div>${a}<span class="arrow">⬇</span><div class="small">nachher</div>${b}</div>`;
+const uopt=(pts)=>graph({x:[0,5,1], y:[-1.5,1.5,0.5], xl:'t in s', yl:'U', w:250, h:170, ml:30, pts, color:'#c0392b', noYnum:true});
+const uopt10=(pts)=>graph({x:[0,10,1], y:[-3,3,1], xl:'t in s', yl:'U', w:260, h:170, ml:30, pts, color:'#c0392b', noYnum:true});
+
+const A3PIC = `<svg class="graph" viewBox="0 0 300 330" width="300" xmlns="http://www.w3.org/2000/svg" font-family="Arial" font-size="12">
+  <rect x="110" y="20" width="80" height="80" fill="none" stroke="#a0392b" stroke-width="3"/>
+  <path d="M190,45 h30 M190,75 h30" stroke="#a0392b" stroke-width="2"/><circle cx="232" cy="60" r="11" fill="#fff" stroke="#333"/><text x="232" y="64" text-anchor="middle">V</text>
+  <text x="150" y="64" text-anchor="middle" fill="#a0392b">Spule</text>
+  <path d="M60,20 v80 M55,20 h10 M55,100 h10" stroke="#333"/><text x="56" y="64" text-anchor="end">10 cm</text>
+  <path d="M60,100 v80 M55,180 h10" stroke="#333"/><text x="56" y="144" text-anchor="end">10 cm</text>
+  <rect x="110" y="180" width="80" height="140" fill="#bfe3f8" stroke="#0b7bc1"/>
+  ${[0,1,2,3].map(i=>[0,1,2,3,4,5,6].map(j=>`<circle cx="${122+i*19}" cy="${192+j*19}" r="5" fill="none" stroke="#1b5f8c"/><circle cx="${122+i*19}" cy="${192+j*19}" r="1.8" fill="#1b5f8c"/>`).join('')).join('')}
+  <path d="M60,180 v140 M55,320 h10" stroke="#333"/><text x="56" y="254" text-anchor="end">20 cm</text>
+  <text x="200" y="250" fill="#0b7bc1">Magnetfeld</text>
+  <path d="M260,30 v50" stroke="#e8762b" stroke-width="3" marker-end="url(#ah2)"/><text x="268" y="62" fill="#e8762b">v = 10 cm/s</text>
+  <defs><marker id="ah2" markerWidth="8" markerHeight="8" refX="4" refY="6" orient="auto-start-reverse"><path d="M0,0 L8,0 L4,8 z" fill="#e8762b" transform="rotate(-90 4 4)"/></marker></defs>
+ </svg>`;
+const A1PIC = `<svg class="graph" viewBox="0 0 520 210" width="520" xmlns="http://www.w3.org/2000/svg" font-family="Arial" font-size="12">
+  <path d="M150,60 h220 v110 h-50 v-60 h-120 v60 h-50 z" fill="#9aa3ad" stroke="#555"/>
+  <rect x="140" y="95" width="70" height="70" fill="#c98d5a" stroke="#7a4a24"/><rect x="310" y="95" width="70" height="70" fill="#c98d5a" stroke="#7a4a24"/>
+  ${[0,1,2,3,4,5,6,7,8].map(i=>`<line x1="${145+i*7.5}" y1="96" x2="${145+i*7.5}" y2="164" stroke="#7a4a24"/><line x1="${315+i*7.5}" y1="96" x2="${315+i*7.5}" y2="164" stroke="#7a4a24"/>`).join('')}
+  <text x="175" y="185" text-anchor="middle">linke Spule</text><text x="345" y="185" text-anchor="middle">rechte Spule</text>
+  <text x="260" y="52" text-anchor="middle">Eisenkern (U-Kern + Joch)</text>
+  <rect x="10" y="90" width="90" height="70" rx="6" fill="#3a3f4a"/><circle cx="55" cy="115" r="12" fill="#ccc"/><text x="55" y="148" fill="#fff" text-anchor="middle">Netzgerät</text>
+  <path d="M100,110 C120,110 130,120 145,120 M100,140 C120,140 130,140 145,140" stroke="#c0392b" stroke-width="2" fill="none"/>
+  <rect x="420" y="80" width="90" height="80" rx="6" fill="#3a3f4a"/><circle cx="465" cy="112" r="20" fill="#fff"/><text x="465" y="117" text-anchor="middle">V</text><text x="465" y="150" fill="#fff" text-anchor="middle">Messgerät</text>
+  <path d="M380,115 C395,115 405,110 420,110 M380,145 C395,145 405,140 420,140" stroke="#c0392b" stroke-width="2" fill="none"/>
+ </svg>`;
+
+const S3 = [
+ {t:'html', html:`<h1>Sitzung 3: Elektromagnetische Induktion</h1>
+  <div class="box warn" style="font-size:1.05rem"><div class="boxtitle">⚡ Vielleicht die wichtigste Physikstunde deines Lebens!</div>
+  Heute lernst du ein Phänomen kennen, das du <b>jeden Tag</b> benutzt – ohne es zu sehen. Es heißt <b>elektromagnetische Induktion</b>.<br>
+  Fast der ganze elektrische Strom aus der Steckdose kommt aus <b>Generatoren</b>: im Kohle-, Gas- und Atomkraftwerk, im Wasserkraftwerk und im Windrad. Alle Generatoren funktionieren mit Induktion.<br>
+  Und es geht weiter: <b>Elektromotoren</b> (z. B. im E-Auto, im Fön, in der Waschmaschine) nutzen dieselbe Physik von Magnet und Spule. Der <b>Transformator</b> im Ladegerät, der <b>Induktionsherd</b>, das <b>kabellose Laden</b> deines Handys, der Fahrraddynamo, der Metalldetektor am Flughafen – alles Induktion!</div>
+  <div class="box info"><div class="boxtitle">🎯 Das kannst du nach dieser Sitzung</div>
+  <ul><li>Du weißt, wann eine Spannung induziert wird – und wann nicht.</li>
+  <li>Du kannst die Induktion mit Feldlinien erklären (ohne Formel!).</li>
+  <li>Du kannst an einem Graphen sagen, wann eine Induktionsspannung da ist.</li>
+  <li>Du kannst Aufgaben zu Versuchen mit Magnet und Spule lösen.</li></ul></div>
+  <div class="heft" style="border-style:solid"><div class="htitle">✍️ Dein Heft</div>In dieser Sitzung findest du <b>drei Merksätze</b> in hellblauen Kästen wie diesem. Sie sind die wichtigsten Sätze der Sitzung. <b>Schreibe jeden Merksatz sauber in dein Heft</b> (mit Überschrift „Elektromagnetische Induktion“ und Datum). Danach setzt du den Haken und bekommst einen ⭐. Am Ende der Sitzung stehen alle drei Merksätze noch einmal zusammen.</div>`},
+ {t:'mc', id:'s3-i1', q:'Wo wird elektromagnetische Induktion genutzt?', opts:['Generator im Kraftwerk','Windrad','Fahrraddynamo','Induktionsherd','Kabelloses Laden vom Handy','Solarzelle','Taschenlampe mit Batterie'], a:[0,1,2,3,4],
+   explain:'Generator, Windrad, Dynamo, Induktionsherd und kabelloses Laden nutzen Induktion. Solarzelle und Batterie erzeugen Spannung anders (mit Licht bzw. mit Chemie).'},
+
+ {t:'h2', text:'3.1 Ein Blick in die Geschichte', id:'s3-h'},
+ {t:'vocab', title:'Wörter für den Text', words:[['die Entdeckung','discovery'],['entdecken','to discover'],['der Buchbinder','bookbinder'],['die Nadel (des Kompasses)','(compass) needle'],['der Stromkreis','electric circuit'],['schließen / öffnen','to close / to open'],['zucken','to twitch, to jerk'],['das Notizbuch','notebook'],['verwandeln','to convert, to transform'],['die Legende','legend (story that may not be true)']]},
+ {t:'html', html:`<div class="box history"><div class="boxtitle">„Verwandle Magnetismus in Elektrizität!“</div>
+  <p><b>Kopenhagen, 1820.</b> Der Physiker Hans Christian Ørsted zeigt seinen Studenten ein Experiment. Ein Strom fließt durch einen Draht. Neben dem Draht liegt ein Kompass. Plötzlich bewegt sich die Kompassnadel! Ørsted entdeckt: <b>Elektrischer Strom erzeugt ein Magnetfeld.</b> (Genau das habt ihr mit der Spule gemessen.)</p>
+  <p><b>London.</b> Michael Faraday liest von dieser Entdeckung. Faraday kommt aus einer armen Familie. Er geht nur wenige Jahre zur Schule. Mit 14 Jahren lernt er den Beruf <b>Buchbinder</b>. Er liest die Bücher, die er bindet – am liebsten Bücher über Naturwissenschaften. Später wird er Assistent an der <i>Royal Institution</i> in London.</p>
+  <p>Faraday denkt: Strom macht ein Magnetfeld. Kann dann ein Magnetfeld auch Strom machen? In sein Notizbuch schreibt er: <i>„Convert magnetism into electricity.“</i> – Verwandle Magnetismus in Elektrizität!</p>
+  <p>Viele Jahre probiert er es. Er legt einen starken Magneten neben eine Spule – nichts passiert.</p>
+  <p><b>29. August 1831.</b> Faraday wickelt zwei Spulen auf einen Eisenring. Die erste Spule verbindet er mit einer Batterie. Die zweite Spule verbindet er mit einem Strommessgerät. Er schließt den Stromkreis der ersten Spule. Die Nadel des Messgeräts <b>zuckt kurz</b> – und geht dann zurück auf null! Er öffnet den Stromkreis: Die Nadel zuckt wieder, aber <b>in die andere Richtung</b>.</p>
+  <p>Faraday versteht: Ein <b>konstantes</b> Magnetfeld erzeugt keinen Strom. Nur wenn sich das Magnetfeld <b>ändert</b>, gibt es Strom. Wenige Wochen später schiebt er einen Stabmagneten in eine Spule hinein und wieder heraus – und misst wieder Strom. Dann baut er den ersten <b>Generator</b>: eine Kupferscheibe, die sich zwischen den Polen eines Magneten dreht.</p>
+  <p>Eine bekannte Geschichte (vielleicht nur eine <b>Legende</b>): Ein Politiker fragt Faraday: „Wozu ist das nützlich?“ Faraday antwortet: „Eines Tages, Sir, werden Sie darauf Steuern verlangen.“</p>
+  <p>Heute erzeugen Generatoren den größten Teil der elektrischen Energie auf der Welt.</p></div>`},
+ {t:'mc', id:'s3-h1', q:'Was hat Ørsted 1820 entdeckt?', opts:['Elektrischer Strom erzeugt ein Magnetfeld.','Ein Magnet erzeugt Strom.','Den Generator.','Den Kompass.'], a:0, explain:'Die Kompassnadel bewegt sich neben einem Draht mit Strom. Strom → Magnetfeld.'},
+ {t:'mc', id:'s3-h2', q:'Welche Frage hatte Faraday?', opts:['Kann ein Magnetfeld auch Strom erzeugen?','Kann Strom ein Magnetfeld erzeugen?','Warum zeigt der Kompass nach Norden?'], a:0, explain:'Ørsted: Strom → Magnetfeld. Faraday wollte das Umgekehrte: Magnetfeld → Strom.'},
+ {t:'mc', id:'s3-h3', q:'Faraday schließt den Stromkreis der ersten Spule. Was zeigt das Messgerät an der zweiten Spule?', opts:['Die Nadel zuckt kurz und geht zurück auf null.','Die Nadel zeigt die ganze Zeit einen Strom.','Die Nadel bewegt sich gar nicht.'], a:0,
+   explain:'Nur beim Einschalten ändert sich das Magnetfeld. Danach ist es konstant – kein Strom mehr.'},
+ {t:'mc', id:'s3-h4', q:'Was hat Faraday daraus verstanden?', opts:['Nur ein sich änderndes Magnetfeld erzeugt Strom.','Ein starkes, konstantes Magnetfeld erzeugt viel Strom.','Ein Eisenring erzeugt Strom.'], a:0, explain:'Das ist der Kern der Induktion: Es kommt auf die Änderung an!'},
+ {t:'match', id:'s3-hv', q:'Wörter aus dem Text: Was heißt das auf Englisch?', pairs:[['die Entdeckung','discovery'],['der Stromkreis','electric circuit'],['zucken','to twitch'],['verwandeln','to convert'],['der Buchbinder','bookbinder']]},
+
+ {t:'h2', text:'3.2 Neue Wörter: Induktion', id:'s3-w'},
+ {t:'vocab', title:'Wörter: Induktion', words:[
+   ['die Induktion','induction'],['induzieren','to induce'],['die Spannung U','voltage'],['die Induktionsspannung','induced voltage'],
+   ['das Spannungsmessgerät','voltmeter'],['der Zeiger / der Zeigerausschlag','pointer / deflection of the pointer'],['das Vorzeichen (+ / –)','sign (+ / –)'],
+   ['der Betrag','magnitude, size (without sign)'],['der Stabmagnet','bar magnet'],['der Hufeisenmagnet','horseshoe magnet'],['der Elektromagnet','electromagnet'],
+   ['der Eisenkern','iron core'],['der Generator','generator'],['der Fahrraddynamo','bicycle dynamo'],['der Dauermagnet','permanent magnet'],
+   ['relativ zueinander','relative to each other'],['hinein- / herausbewegen','to move in / to move out'],['drehen / die Drehung','to rotate / rotation'],
+   ['die Wechselspannung','alternating voltage (AC)'],['die Gleichspannung','direct voltage (DC)'],['der Schalter','switch'],
+   ['die Feldlinie','field line'],['die Querschnittsfläche','cross-sectional area'],['das Kraftwerk','power station']]},
+
+ {t:'h2', text:'3.3 Induktion durch Bewegung', id:'s3-b'},
+ {t:'html', html:`<div class="card">
+  <p><b>Erzeugung von Spannung.</b> Ein Beispiel für einen Generator ist der <b>Fahrraddynamo</b>. Er hat eine <b>feststehende Spule</b> und einen <b>drehbaren Dauermagneten</b>. Wir schließen ein Spannungsmessgerät an die Spule an. Wir drehen am Antriebsrad. Das Messgerät zeigt eine Spannung! Es reicht also, den Magneten in der Spule zu drehen.</p>
+  <p>Physiker sagen nicht „eine Spannung entsteht“. Sie sagen: <b>„Eine Spannung wird induziert.“</b></p>
+  <p><b>Der Versuch:</b> Wir nehmen eine Spule, einen Stabmagneten und ein Spannungsmessgerät.</p>
+  <ul><li>Wir bewegen den Magneten <b>in die Spule hinein</b>: Das Messgerät zeigt eine Spannung.</li>
+  <li>Wir ziehen den Magneten <b>heraus</b>: Wieder eine Spannung – aber der Zeiger geht in die <b>andere Richtung</b>. Das <b>Vorzeichen</b> der Spannung hat sich umgekehrt.</li>
+  <li>Der Magnet <b>liegt still</b> in der Spule: <b>Keine</b> Spannung!</li>
+  <li>Wir bewegen den Magneten <b>schneller</b>: Der Zeigerausschlag ist <b>größer</b>.</li>
+  <li>Wir halten den Magneten fest und bewegen die <b>Spule</b>: Auch dann wird eine Spannung induziert.</li></ul>
+  <p>👉 Probiere alles in der Simulation aus!</p></div>`},
+ {t:'custom', render:simMagnet},
+ {t:'mc', id:'s3-b1', q:'Der Magnet liegt still in der Spule. Was zeigt das Messgerät?', opts:['Keine Spannung (0).','Eine große Spannung.','Eine Spannung, die langsam größer wird.'], a:0, explain:'Ohne Bewegung ändert sich nichts. Es wird keine Spannung induziert.'},
+ {t:'mc', id:'s3-b2', q:'Beim Hineinbewegen zeigt der Zeiger nach rechts (+). Wohin zeigt er beim Herausziehen?', opts:['Nach links (−).','Auch nach rechts (+).','Er bleibt bei 0.'], a:0, explain:'Andere Bewegungsrichtung → anderes Vorzeichen der Spannung.'},
+ {t:'mc', id:'s3-b3', q:'Wie kannst du eine größere Spannung induzieren?', opts:['Den Magneten schneller bewegen.','Eine Spule mit mehr Windungen nehmen.','Einen stärkeren Magneten nehmen.','Den Magneten langsamer bewegen.','Den Magneten still in die Spule legen.'], a:[0,1,2],
+   explain:'Schnellere Bewegung, mehr Windungen und ein stärkerer Magnet ergeben eine größere Spannung. (Teste Windungen in der Simulation!)'},
+ {t:'mc', id:'s3-b4', q:'Man hält den Magneten fest und bewegt die Spule über den Magneten. Wird eine Spannung induziert?', opts:['Ja. Es kommt nur auf die relative Bewegung von Magnet und Spule an.','Nein. Nur der Magnet darf sich bewegen.','Nein. Die Spule muss immer stillstehen.'], a:0, explain:'Wichtig ist: Magnet und Spule bewegen sich relativ zueinander. Wer sich bewegt, ist egal.'},
+ {t:'mc', id:'s3-b5', q:'Du drehst den Magneten um (N und S tauschen) und schiebst ihn wieder in die Spule. Was ändert sich?', opts:['Das Vorzeichen der Spannung.','Nichts.','Es gibt keine Spannung mehr.'], a:0, explain:'Probiere es in der Simulation: Mit umgedrehtem Magneten zeigt der Zeiger in die andere Richtung.'},
+ {t:'heft', id:'s3-heft1', text:'Wenn sich ein Magnet und eine Spule relativ zueinander bewegen, dann wird eine Spannung induziert.<br>Das Vorzeichen der Spannung hängt von der Bewegungsrichtung ab.<br>Je schneller die Bewegung ist, desto größer ist die Spannung.', src:'Merksatz 1 von 3'},
+ {t:'mc', id:'s3-b6', label:'Denkaufgabe', q:'Ein Stabmagnet wird <b>durch</b> eine Spule hindurchgeschoben (rein – durch – raus). Wie ändert sich die Anzeige des Spannungsmessgeräts?',
+   opts:['Zuerst schlägt der Zeiger in eine Richtung aus. In der Mitte geht er kurz auf null. Dann schlägt er in die andere Richtung aus.','Der Zeiger zeigt die ganze Zeit in dieselbe Richtung.','Der Zeiger bleibt die ganze Zeit bei null.','Der Zeiger schlägt nur in der Mitte der Spule aus.'], a:0,
+   explain:'Beim Hineinbewegen wird das Feld in der Spule stärker (z. B. +). Ganz in der Mitte ändert es sich kurz nicht (0). Beim Herauskommen wird es schwächer (−). Teste es in der Simulation mit „langsam durch die Spule“!'},
+
+ {t:'h2', text:'3.4 Drehung der Spule im Magnetfeld', id:'s3-d'},
+ {t:'html', html:`<div class="card">
+  <p>Wir stellen eine Spule mit vielen Windungen auf einen <b>Drehteller</b>. Wir schließen ein Spannungsmessgerät an. Als Magnetfeld nehmen wir das <b>Magnetfeld der Erde</b>.</p>
+  <p>Wir <b>drehen</b> die Spule. Das Messgerät zeigt eine Spannung. Der Zeiger zeigt <b>abwechselnd nach rechts und nach links</b>. Die Spannung ist also nicht konstant.</p>
+  <p>Mit einem Computer (Messwerterfassung) zeichnen wir die Spannung über der Zeit auf:</p>
+  ${graph({x:[0,4,1], y:[-1.5,1.5,0.5], xl:'t', yl:'U', w:420, h:200, fn:null, series:[{fn:t=>Math.sin(Math.PI*t/1.5), color:'#c0392b'}], noXnum:true, noYnum:true, caption:'Wechselspannung: Die Spannung ist über der Zeit dargestellt.'})}
+  <p>Die Spannung ist abwechselnd <b>positiv</b> und <b>negativ</b>. Das passiert immer wieder. Man nennt das eine <b>Wechselspannung</b>.</p>
+  <p>Eine Batterie liefert dagegen eine <b>Gleichspannung</b>: Das Vorzeichen bleibt immer gleich.</p></div>`},
+ {t:'custom', render:simRotate},
+ {t:'heft', id:'s3-heft2', text:'Wenn eine Spule in einem Magnetfeld gedreht wird, dann wird eine Wechselspannung induziert.', src:'Merksatz 2 von 3'},
+ {t:'mc', id:'s3-d1', q:'Was ist eine Wechselspannung?', opts:['Eine Spannung, die immer wieder ihr Vorzeichen wechselt (+, −, +, −, …).','Eine Spannung, die immer gleich groß ist.','Eine Spannung, die nur positiv ist.'], a:0, explain:'Wechselspannung: abwechselnd positiv und negativ. Aus der Steckdose kommt Wechselspannung.'},
+ {t:'mc', id:'s3-d2', q:'Welche Spannung liefert eine Batterie?', opts:['Gleichspannung','Wechselspannung','Gar keine Spannung'], a:0, explain:'Bei einer Batterie bleiben + und − immer gleich: Gleichspannung.'},
+ {t:'mc', id:'s3-d3', q:'In der Simulation: Wann ist die Spannung U genau null?', opts:['Wenn die Anzahl der Feldlinien durch die Spule am größten oder am kleinsten ist.','Wenn die Anzahl der Feldlinien null ist.','Die Spannung ist nie null.'], a:0,
+   explain:'Am Hochpunkt und Tiefpunkt ändert sich die Anzahl der Feldlinien für einen Moment nicht (der Graph ist waagerecht). Dann ist U = 0. Wenn die Spule „auf der Kante“ steht (0 Feldlinien), ändert sich die Anzahl am schnellsten – dort ist U am größten!'},
+
+ {t:'h2', text:'3.5 Das Magnetfeld ändert sich – Induktion ohne Bewegung', id:'s3-m'},
+ {t:'html', html:`<div class="card">
+  <p>Bis jetzt haben wir immer etwas <b>bewegt</b>: die Spule oder den Magneten. Was ist gemeinsam? <b>Das Magnetfeld in der Spule ändert sich!</b></p>
+  <ul><li>Magnet <b>hinein</b>: Das Feld in der Spule wird <b>stärker</b> → Spannung.</li>
+  <li>Magnet <b>heraus</b>: Das Feld in der Spule wird <b>schwächer</b> → Spannung mit umgekehrtem Vorzeichen.</li>
+  <li>Magnet <b>still</b>: Das Feld ändert sich nicht → keine Spannung.</li>
+  <li>Spule <b>drehen</b>: Die Richtung des Feldes relativ zur Spule ändert sich ständig. Die Stärke des Feldes bleibt gleich. Trotzdem wird eine Spannung induziert.</li></ul>
+  <p>Wir schließen daraus: Es kommt auf die <b>Änderung des Magnetfeldes in der Spule</b> an. Das prüfen wir mit einem neuen Versuch.</p>
+  <p><b>Induktion ohne Bewegung:</b> Wir stellen einen <b>Elektromagneten</b> neben eine Spule (Induktionsspule). An die Spule schließen wir ein Spannungsmessgerät an. Nichts bewegt sich!</p>
+  <ul><li>Wir <b>schließen den Schalter</b>: Der Strom im Elektromagneten erzeugt ein Magnetfeld. Das Messgerät zeigt <b>kurz</b> eine Spannung, danach nicht mehr.</li>
+  <li>Wir <b>öffnen den Schalter</b>: Wieder kurz eine Spannung, aber mit <b>umgekehrtem Vorzeichen</b>.</li>
+  <li>Wir <b>erhöhen die Stromstärke</b> im Elektromagneten: Das Feld wird stärker. <b>Während</b> das Feld stärker wird, wird eine Spannung induziert.</li></ul>
+  <p>Erinnerst du dich an Sitzung 1? <b>B ~ I</b>. Wenn sich die Stromstärke im Elektromagneten ändert, ändert sich auch sein Magnetfeld!</p></div>`},
+ {t:'heft', id:'s3-heft3', text:'Wenn sich in einer Spule das Magnetfeld ändert, dann wird eine Spannung induziert.<br>Ist das Feld konstant, dann gibt es keine Induktionsspannung.', src:'Merksatz 3 von 3'},
+ {t:'mc', id:'s3-m1', q:'Der Schalter ist schon lange geschlossen. Im Elektromagneten fließt ein konstanter Strom. Was zeigt das Messgerät an der Induktionsspule?', opts:['0 – das Magnetfeld ist konstant.','Eine große Spannung – das Magnetfeld ist stark.','Eine Wechselspannung.'], a:0, explain:'Ein starkes, aber konstantes Feld induziert keine Spannung. Es kommt nur auf die Änderung an.'},
+ {t:'mc', id:'s3-m2', q:'Wann wird in der Induktionsspule eine Spannung induziert?', opts:['Beim Schließen des Schalters.','Beim Öffnen des Schalters.','Während man die Stromstärke im Elektromagneten erhöht.','Während ein konstanter Strom fließt.','Wenn der Schalter die ganze Zeit offen ist.'], a:[0,1,2],
+   explain:'Immer dann, wenn sich der Strom im Elektromagneten – und damit das Magnetfeld – ändert.'},
+ {t:'cloze', id:'s3-m3', q:'Ergänze die Erklärung.', lines:[
+   'Beim Schließen des Schalters wird das Magnetfeld in der Spule {*stärker|schwächer}. Es wird eine Spannung induziert.',
+   'Beim Öffnen wird das Magnetfeld {stärker|*schwächer}. Die Spannung hat jetzt {das gleiche|*das umgekehrte} Vorzeichen.',
+   'Bei konstantem Strom ist auch das Magnetfeld {*konstant|steigend}. Es gibt {eine|*keine} Induktionsspannung.']},
+
+ {t:'h2', text:'3.6 Eine Veranschaulichung mit Feldlinien', id:'s3-f'},
+ {t:'html', html:`<div class="card">
+  <p>Wir beschreiben das Magnetfeld mit <b>Feldlinien</b>:</p>
+  <ul><li>Die <b>Richtung</b> einer Feldlinie zeigt die Richtung des Magnetfeldes.</li>
+  <li>Die <b>Anzahl</b> der Feldlinien in einem Bereich zeigt die <b>Stärke</b> des Feldes. Viele Linien = starkes Feld.</li></ul>
+  <p>Wir zeichnen die Feldlinien <b>senkrecht zum Papier</b>:</p>
+  <div class="fieldpics">${fieldPic({cols:1,rows:1,cell:40,field:ALL})}<div>⊗ <b>Kreuz</b>: Die Feldlinie geht <b>in das Papier hinein</b>.<br><span class="small">(Wie das Ende eines Pfeils, der wegfliegt.)</span></div>
+  ${fieldPic({cols:1,rows:1,cell:40,field:ALL,sym:'dot'})}<div>⊙ <b>Punkt</b>: Die Feldlinie kommt <b>aus dem Papier heraus</b>.<br><span class="small">(Wie die Spitze eines Pfeils, der auf dich zukommt.)</span></div></div>
+  <p>Die Spule hat hier <b>eine Windung</b> (roter Rahmen, dunkelblau gefüllt). Wir <b>zählen die Feldlinien in der Spule</b>.</p>
+  <div class="box merke" style="margin-bottom:0"><b>Die Regel:</b> Ändert sich die <b>Anzahl der Feldlinien durch die Spule</b>, dann wird eine Spannung induziert. Bleibt die Anzahl gleich, dann nicht. <br>Es ist egal, <i>wie</i> sich die Anzahl ändert: Feld stärker/schwächer, Spule bewegt, Feld bewegt, Spule gedreht …</div></div>`},
+ {t:'h3', text:'Bild A: Das Magnetfeld wird schwächer'},
+ {t:'html', html:pair(fp('A1','vorher'), fp('A2','nachher'))},
+ {t:'cloze', id:'s3-f1', q:'Zähle die Feldlinien in der Spule (Bild A).', lines:[
+   `Vorher gehen {*${nA1}|${nA2}|${nA1+4}} Feldlinien durch die Spule.`,
+   `Nachher gehen {${nA1}|*${nA2}|${nA2+4}} Feldlinien durch die Spule.`,
+   'Die Anzahl der Feldlinien {nimmt zu|*nimmt ab|bleibt gleich}.',
+   'Also wird {*eine Spannung|keine Spannung} induziert.'], explain:`Vorher ${nA1}, nachher ${nA2} Feldlinien. Das Feld wird schwächer → die Anzahl ändert sich → Induktionsspannung.`},
+ {t:'h3', text:'Bild B: Die Spule bewegt sich aus dem Feld heraus'},
+ {t:'html', html:pair(fp('B1','vorher'), fp('B2','nachher'))},
+ {t:'cloze', id:'s3-f2', q:'Zähle wieder (Bild B).', lines:[
+   `Vorher: {*${nB1}|${nB2}|0} Feldlinien. Nachher: {${nB1}|*${nB2}|0} Feldlinien.`,
+   'Die Stärke des Feldes {hat sich geändert|*hat sich nicht geändert}.',
+   'Die Anzahl der Feldlinien in der Spule {*ändert sich|ändert sich nicht}. Also: {*Spannung|keine Spannung}.'],
+   explain:'Das Feld ist gleich stark. Aber ein Teil der Spule ist jetzt außerhalb des Feldes. Es gehen weniger Feldlinien durch die Spule → Spannung. Ob sich die Spule oder das Feld bewegt, ist egal.'},
+ {t:'h3', text:'Bild C: Die Spule bewegt sich im Feld'},
+ {t:'html', html:pair(fp('C1','vorher'), fp('C2','nachher'))},
+ {t:'mc', id:'s3-f3', q:`Bild C: Die Spule bewegt sich innerhalb des Feldes. Vorher und nachher gehen ${nC1} Feldlinien durch die Spule. Wird eine Spannung induziert?`, opts:['Nein. Die Anzahl der Feldlinien in der Spule bleibt gleich.','Ja. Die Spule bewegt sich.','Ja, weil das Feld sehr stark ist.'], a:0,
+   explain:'Bewegung allein reicht nicht! Nur wenn sich die Anzahl der Feldlinien durch die Spule ändert, wird eine Spannung induziert.'},
+ {t:'mc', id:'s3-f4', label:'Feldlinien-Bild 1', q:'Welches Bild zeigt: <b>Das Magnetfeld in der Spule nimmt zu</b>?', graphs:true, opts:[
+   pairV(fieldPic({...FP.A2,cell:14,meter:false}), fieldPic({...FP.A1,cell:14,meter:false})),
+   pairV(fieldPic({...FP.A1,cell:14,meter:false}), fieldPic({...FP.A2,cell:14,meter:false})),
+   pairV(fieldPic({...FP.C1,cell:14,meter:false}), fieldPic({...FP.C2,cell:14,meter:false}))], a:0,
+   explain:'Vorher wenige Feldlinien, nachher viele: Das Feld in der Spule nimmt zu.'},
+ {t:'mc', id:'s3-f5', label:'Feldlinien-Bild 2', q:'„Induktion ohne Bewegung“: Ein Elektromagnet wird eingeschaltet. Welches Bildpaar passt?', graphs:true, opts:[
+   pairV(fieldPic({...FP.D0,cell:14,meter:false}), fieldPic({...FP.A1,cell:14,meter:false})),
+   pairV(fieldPic({...FP.B1,cell:14,meter:false}), fieldPic({...FP.B2,cell:14,meter:false})),
+   pairV(fieldPic({...FP.C1,cell:14,meter:false}), fieldPic({...FP.C2,cell:14,meter:false}))], a:0,
+   explain:'Die Spule bleibt an ihrem Platz. Vorher gibt es kein Feld, nach dem Einschalten viele Feldlinien. Die Anzahl ändert sich ohne Bewegung.'},
+ {t:'html', html:`<div class="card"><p><b>Drehung (wie in der Simulation oben):</b> Dreht sich die Spule, dann ändert sich die Anzahl der Feldlinien durch die Spule ständig: z. B. 9 Linien, kurz danach nur noch 3. Es wird ständig eine Spannung induziert. Nach einer halben Umdrehung gehen die Feldlinien von der <b>anderen Seite</b> durch die Spule. Darum kehrt sich das Vorzeichen um → <b>Wechselspannung</b>.</p></div>`},
+ {t:'mc', id:'s3-f6', q:'Eine Spule wird beobachtet. Anzahl der Feldlinien durch die Spule: <br><b>0 s: 9 &nbsp;|&nbsp; 1 s: 9 &nbsp;|&nbsp; 2 s: 6 &nbsp;|&nbsp; 3 s: 3 &nbsp;|&nbsp; 4 s: 3</b><br>In welchen Zeiträumen wird eine Spannung induziert?', opts:['zwischen 0 s und 1 s','zwischen 1 s und 2 s','zwischen 2 s und 3 s','zwischen 3 s und 4 s'], a:[1,2], noShuffle:true,
+   explain:'Nur von 1 s bis 3 s ändert sich die Anzahl (9 → 6 → 3).'},
+
+ {t:'h2', text:'3.7 Graphen lesen: Wann wird eine Spannung induziert?', id:'s3-g'},
+ {t:'html', html:`<div class="box merke"><div class="boxtitle">Jetzt brauchst du Sitzung 2!</div>
+  Der Graph zeigt das Magnetfeld B in der Spule (oder die Anzahl der Feldlinien) über der Zeit t.<ul>
+  <li>Graph <b>steigend</b> → Induktionsspannung (z. B. positiv).</li>
+  <li>Graph <b>fallend</b> → Induktionsspannung mit <b>umgekehrtem Vorzeichen</b>.</li>
+  <li>Graph <b>konstant</b> → <b>keine</b> Induktionsspannung – auch wenn B groß ist!</li>
+  <li>Graph <b>steiler</b> → Spannung <b>größer</b>.</li></ul></div>
+  <div class="card">${graph({x:[0,6,1], y:[0,3,1], xl:'t in s', yl:'I in A', w:460, h:230, pts:[[0,0],[1,0],[1.2,2],[4,2],[4.2,0],[6,0]], caption:'Graph E: Stromstärke I im Elektromagneten'})}</div>`},
+ {t:'mc', id:'s3-g1', q:'Graph E: Wann wird in der Induktionsspule neben dem Elektromagneten eine Spannung induziert?', opts:['kurz bei t = 1 s (Einschalten)','zwischen 2 s und 4 s','kurz bei t = 4 s (Ausschalten)','zwischen 5 s und 6 s'], a:[0,2], noShuffle:true,
+   explain:'Nur beim Ein- und Ausschalten ändert sich I (und damit B). Zwischen 1,2 s und 4 s ist I konstant (2 A) – keine Spannung.'},
+ {t:'html', html:`<div class="card">${graph({x:[0,10,1], y:[0,5,1], xl:'t in s', yl:'B in mT', w:480, h:250, pts:[[0,0],[2,4],[4,4],[5,0],[8,0],[10,2]], caption:'Graph F: Magnetfeld B in einer Spule'})}</div>`},
+ {t:'mc', id:'s3-g2', q:'Graph F: In welchen Intervallen wird eine Spannung induziert?', opts:['0 s bis 2 s','2 s bis 4 s','4 s bis 5 s','5 s bis 8 s','8 s bis 10 s'], a:[0,2,4], noShuffle:true,
+   explain:'Steigend (0–2 s), fallend (4–5 s) und steigend (8–10 s): Spannung. Konstant (2–4 s und 5–8 s): keine Spannung.'},
+ {t:'mc', id:'s3-g3', q:'Graph F: Wo ist der <b>Betrag</b> der Spannung am größten?', opts:['4 s bis 5 s','0 s bis 2 s','8 s bis 10 s','2 s bis 4 s'], a:0,
+   explain:'4–5 s: B ändert sich um 4 mT in 1 s (4 mT/s) – am steilsten. 0–2 s: 2 mT/s. 8–10 s: 1 mT/s.'},
+ {t:'cloze', id:'s3-g4', q:'Graph F: Zwischen 0 s und 2 s ist die Spannung positiv. Ergänze.', lines:[
+   'Zwischen 4 s und 5 s ist die Spannung {positiv|*negativ|null}.',
+   'Zwischen 5 s und 8 s ist die Spannung {positiv|negativ|*null}.',
+   'Zwischen 8 s und 10 s ist die Spannung {*positiv|negativ|null}.',
+   'Zwischen 2 s und 4 s ist B groß, aber die Spannung ist {*null|sehr groß}, weil B {*konstant|steigend} ist.'],
+   explain:'Steigend wie bei 0–2 s → positiv. Fallend → negativ. Konstant → null.'},
+ {t:'mc', id:'s3-g5', q:'Das Magnetfeld B in einer Spule ändert sich so:<br>'+graph({x:[0,10,1], y:[0,6,1], xl:'t in s', yl:'B in mT', w:400, h:210, pts:G1})+'Welcher Graph zeigt die induzierte Spannung U?', graphs:true,
+   opts:[uopt10([[0,2],[2,2],[2,0],[5,0],[5,-2],[7,-2],[7,0],[10,0]]), uopt10([[0,0.6],[2,2.6],[5,2.6],[7,0.6],[10,0.6]]), uopt10([[0,0],[2,0],[2,2],[5,2],[5,0],[10,0]]), uopt10([[0,-2],[2,-2],[2,0],[5,0],[5,-2],[7,-2],[7,0],[10,0]])], a:0,
+   explain:'Steigend → Spannung (+). Konstant → 0. Fallend → Spannung (−). Achtung: Der Graph von U sieht ganz anders aus als der Graph von B!'},
+ {t:'mc', id:'s3-g6', q:'Welche Aussage ist <b>falsch</b>?', opts:['Ein starkes Magnetfeld induziert immer eine große Spannung.','Wenn B konstant ist, gibt es keine Induktionsspannung.','Wenn B schneller steigt, ist die Spannung größer.','Steigendes und fallendes B ergeben unterschiedliche Vorzeichen.'], a:0,
+   explain:'Falsch: Ein starkes, aber konstantes Feld induziert gar keine Spannung. Es kommt nur auf die Änderung an.'},
+
+ {t:'h2', text:'3.8 Versuche und Aufgaben', id:'s3-mat'},
+ {t:'html', html:`<div class="box material"><div class="boxtitle">🔬 Versuche: Erkundung der Induktion</div>
+  <b>V1 Induktion durch Bewegung.</b> Material: Stabmagnet, Spulen mit unterschiedlichen Windungszahlen, Spannungsmessgerät mit mV-Bereich und Nullpunkt in der Mitte.<br>
+  a) Bewege den Magneten ruckartig in die Spule hinein und heraus. b) Untersuche, wovon das Vorzeichen und der Betrag der Spannung abhängen.<br><br>
+  <b>V2 Induktion durch Drehung.</b> Material: Hufeisenmagnet, Spule mit 500 Windungen, U-förmiger Eisenkern, Schnur, Spannungsmessgerät.<br>
+  a) Der Hufeisenmagnet hängt an einer Schnur über dem U-Kern. Drehe den Magneten. Gleich- oder Wechselspannung? b) Wie erzeugst du eine möglichst große Spannung?</div>`},
+ {t:'mc', id:'s3-v1a', label:'V1 b', q:'Wovon hängt das <b>Vorzeichen</b> der Spannung ab?', opts:['von der Bewegungsrichtung (hinein oder heraus)','davon, welcher Pol (N oder S) zur Spule zeigt','von der Farbe des Magneten','von der Länge der Kabel'], a:[0,1],
+   explain:'Richtung der Bewegung und Polung des Magneten bestimmen das Vorzeichen.'},
+ {t:'mc', id:'s3-v1b', label:'V1 b', q:'Wovon hängt der <b>Betrag</b> der Spannung ab?', opts:['von der Geschwindigkeit der Bewegung','von der Windungszahl der Spule','von der Stärke des Magneten','von der Richtung der Bewegung (hinein/heraus)'], a:[0,1,2],
+   explain:'Schneller, mehr Windungen, stärkerer Magnet → größere Spannung. Die Richtung ändert nur das Vorzeichen.'},
+ {t:'mc', id:'s3-v2a', label:'V2 a', q:'Der Hufeisenmagnet dreht sich über der Spule. Welche Spannung wird induziert?', opts:['Wechselspannung','Gleichspannung','Keine Spannung'], a:0,
+   explain:'Bei jeder halben Drehung ist der andere Pol über dem Kern. Das Feld in der Spule wechselt die Richtung → Wechselspannung. So funktioniert auch der Fahrraddynamo.'},
+ {t:'mc', id:'s3-v2b', label:'V2 b', q:'Wie erzeugst du eine möglichst große Spannung?', opts:['Den Magneten schnell drehen.','Einen starken Magneten nehmen.','Eine Spule mit vielen Windungen und Eisenkern nehmen.','Den Magneten weit weg von der Spule hängen.','Den Magneten sehr langsam drehen.'], a:[0,1,2],
+   explain:'Schnelle Änderung, starkes Feld, viele Windungen, Eisenkern → große Spannung.'},
+
+ {t:'h3', text:'Material A: Viele Möglichkeiten zur Induktion'},
+ {t:'html', html:`<div class="card center">${A1PIC}<div class="caption">Aufbau (vereinfacht): Die linke Spule hängt am Netzgerät (mit Drehknopf für die Stromstärke). Die rechte Spule hängt am Spannungsmessgerät. Beide Spulen sitzen auf einem Eisenkern.</div></div>`},
+ {t:'mc', id:'s3-A1a', label:'A1 a', q:'Mit welchen Aktionen kann man in der rechten Spule eine Spannung induzieren?', opts:[
+   'Das Netzgerät einschalten.','Das Netzgerät ausschalten.','Die Stromstärke am Drehknopf größer machen.','Die Stromstärke am Drehknopf kleiner machen.',
+   'Die rechte Spule vom Eisenkern wegziehen.','Das Joch (oberes Eisenstück) abnehmen.','Einen konstanten Strom fließen lassen und nichts verändern.','Das Messgerät auf einen anderen Messbereich stellen.'], a:[0,1,2,3,4,5],
+   explain:'Bei allen diesen Aktionen ändert sich das Magnetfeld in der rechten Spule. Bei konstantem Strom (ohne Änderung) gibt es keine Spannung.'},
+ {t:'mc', id:'s3-A1a2', label:'A1 a', q:'Warum wird bei all diesen Möglichkeiten eine Spannung induziert? Die gemeinsame Erklärung:', opts:['Das Magnetfeld (die Anzahl der Feldlinien) in der rechten Spule ändert sich.','In der rechten Spule fließt ein konstanter Strom.','Die Spulen berühren sich.'], a:0,
+   explain:'Immer derselbe Grund: Das Magnetfeld in der Spule ändert sich.'},
+ {t:'mc', id:'s3-A1b', label:'A1 b', q:'Die linke Spule wird an eine <b>Wechselspannung</b> angeschlossen. Warum wird in der rechten Spule ebenfalls eine Wechselspannung induziert?', opts:[
+   'Der Strom in der linken Spule ändert sich ständig (Betrag und Richtung). Dadurch ändert sich auch das Magnetfeld in der rechten Spule ständig – mal stärker, mal schwächer, mal andere Richtung.',
+   'Der Strom fließt durch den Eisenkern direkt in die rechte Spule.',
+   'Weil die rechte Spule mehr Windungen hat.'], a:0,
+   explain:'Wechselstrom → sich ständig änderndes Magnetfeld → ständig Induktion, mit wechselndem Vorzeichen. Das ist das Prinzip des Transformators!'},
+ {t:'mc', id:'s3-A2', label:'A2', q:'Kann man auch <b>ohne Eisenkern</b> eine Spannung induzieren? Warum geht es mit Eisen besser?', opts:[
+   'Ja, es geht auch ohne Eisen. Mit Eisenkern ist das Magnetfeld aber viel stärker. Dann ändert sich auch mehr – die Spannung ist größer.',
+   'Nein, ohne Eisen geht es nicht, weil das Magnetfeld Eisen braucht.',
+   'Ja, und ohne Eisen ist die Spannung sogar größer.'], a:0,
+   explain:'Induktion braucht nur ein sich änderndes Magnetfeld. Eisen verstärkt das Feld (und leitet es in die zweite Spule). Darum ist die Spannung mit Eisen größer.'},
+
+ {t:'h3', text:'Aufgabe A3: Eine Spule fällt durch ein Magnetfeld'},
+ {t:'html', html:`<div class="card"><div class="grid2"><div class="center">${A3PIC}</div><div>
+  <p>Eine quadratische Spule (10 cm × 10 cm) bewegt sich mit <b>konstanter Geschwindigkeit v = 10 cm/s</b> nach unten durch ein Magnetfeld. Das Magnetfeld ist 20 cm hoch. Am Anfang (t = 0 s) ist die Unterkante der Spule 10 cm über dem Feld.</p>
+  <p><b>Tipp:</b> In 1 Sekunde bewegt sich die Spule 10 cm.</p>
+  <ul class="small"><li>0 s – 1 s: Die Spule ist noch über dem Feld.</li><li>1 s – 2 s: Die Spule tritt in das Feld ein.</li><li>2 s – 3 s: Die Spule ist ganz im Feld.</li><li>3 s – 4 s: Die Spule tritt aus dem Feld aus.</li><li>ab 4 s: Die Spule ist unter dem Feld.</li></ul></div></div></div>`},
+ {t:'cloze', id:'s3-A3a', label:'A3 a', q:'Beschreibe, wie sich die Anzeige des Spannungsmessgeräts ändert.', noShuffle:true, lines:[
+   '0 s – 1 s: Die Anzahl der Feldlinien in der Spule ist {*null und konstant|steigend}. → {*keine Spannung|Spannung}',
+   '1 s – 2 s: Die Anzahl der Feldlinien {*nimmt zu|nimmt ab|bleibt gleich}. → {keine Spannung|*Spannung (+)|Spannung (−)}',
+   '2 s – 3 s: Die Anzahl der Feldlinien {nimmt zu|nimmt ab|*bleibt gleich}. → {*keine Spannung|Spannung (+)|Spannung (−)}',
+   '3 s – 4 s: Die Anzahl der Feldlinien {nimmt zu|*nimmt ab|bleibt gleich}. → {keine Spannung|Spannung (+)|*Spannung (−)}'],
+   explain:'Nur beim Eintreten und Austreten ändert sich die Anzahl der Feldlinien in der Spule. Ganz im Feld bleibt sie gleich – trotz Bewegung!'},
+ {t:'mc', id:'s3-A3b', label:'A3 b', q:'Welcher Graph zeigt den zeitlichen Verlauf der Spannung?', graphs:true, opts:[
+   uopt([[0,0],[1,0],[1,1],[2,1],[2,0],[3,0],[3,-1],[4,-1],[4,0],[5,0]]),
+   uopt([[0,0],[1,0],[1,1],[4,1],[4,0],[5,0]]),
+   uopt([[0,0],[1,0],[1,1],[2,1],[2,0],[3,0],[3,1],[4,1],[4,0],[5,0]]),
+   uopt([[0,0],[2,0],[2,1],[3,1],[3,0],[5,0]])], a:0,
+   explain:'1–2 s: Spannung (+). 2–3 s: keine Spannung. 3–4 s: Spannung mit umgekehrtem Vorzeichen (−).'},
+ {t:'mc', id:'s3-A3c', label:'A3 c', q:'Die Spule bewegt sich jetzt <b>schneller</b> (20 cm/s). Wie ändert sich der Verlauf?', opts:[
+   'Die Spannung ist größer, und alles passiert schneller (die Zeiten sind halb so lang).',
+   'Die Spannung ist kleiner, und die Zeiten sind länger.',
+   'Nichts ändert sich.',
+   'Die Spannung ist jetzt auch zwischen 2 s und 3 s da.'], a:0,
+   explain:'Schnellere Bewegung → schnellere Änderung → größere Spannung. Die Spule ist schneller durch das Feld, also sind die Zeiten kürzer.'},
+ {t:'cloze', id:'s3-A3d', label:'A3 d', q:'Jetzt ist die Spule 20 cm hoch und das Magnetfeld nur 10 cm hoch. (Wieder 10 cm Abstand, v = 10 cm/s.) Ergänze.', noShuffle:true, lines:[
+   '1 s – 2 s: Das Feld kommt in die Spule. Die Anzahl der Feldlinien {*nimmt zu|bleibt gleich}. → Spannung.',
+   '2 s – 3 s: Das ganze Feld ist {*in der Spule|außerhalb der Spule}. Die Anzahl der Feldlinien {nimmt zu|*bleibt gleich}. → {Spannung|*keine Spannung}.',
+   '3 s – 4 s: Das Feld verlässt die Spule. → Spannung mit {dem gleichen|*dem umgekehrten} Vorzeichen.',
+   'Der Graph hat also {*die gleiche Form wie in a)|eine ganz andere Form als in a)}.'],
+   explain:'Überraschung: Der Verlauf ist gleich! Jetzt ist das Feld ganz in der Spule (statt die Spule ganz im Feld). In beiden Fällen ändert sich die Anzahl der Feldlinien nur beim Eintreten und Austreten.'},
+
+ {t:'h3', text:'Material B: Faradays Versuche'},
+ {t:'html', html:`<div class="card"><p>Faraday hat seine Versuche in Bild und Text genau dokumentiert. Hier sind seine Aufbauten (beschrieben):</p>
+  <ol type="a"><li><b>Holzzylinder mit zwei Spulen:</b> Auf einem Stück Holz sind zwei Spulen gewickelt. Eine Spule hängt an einer <b>Batterie</b>, die andere an einem <b>Galvanometer</b> (Strommessgerät).</li>
+  <li><b>Holzring mit zwei Spulen:</b> wie a), aber die Spulen sind auf einem Holzring. Am Messgerät hängt eine Magnetnadel.</li>
+  <li><b>Eisenring mit zwei Spulen:</b> Eine Spule hängt an der Batterie, die andere am Galvanometer (sein berühmter Versuch von 1831).</li>
+  <li><b>Eisenstab in einer Spule zwischen zwei Dauermagneten:</b> Die Spule hängt am Galvanometer.</li></ol></div>`},
+ {t:'mc', id:'s3-B1a', label:'B1', q:'Aufbau a), b) und c): Wann zeigt das Galvanometer einen Strom?', opts:['Nur im Moment, in dem man die Batterie anschließt oder abklemmt.','Die ganze Zeit, solange die Batterie angeschlossen ist.','Nie, weil sich nichts bewegt.'], a:0,
+   explain:'Nur beim Ein- und Ausschalten ändert sich das Magnetfeld der ersten Spule. Das ist „Induktion ohne Bewegung“.'},
+ {t:'mc', id:'s3-B1b', label:'B1', q:'Warum funktioniert c) (Eisenring) besser als a) (Holz)?', opts:['Eisen macht das Magnetfeld stärker und führt es durch die zweite Spule.','Holz leitet den Strom besser.','Eisen ist schwerer.'], a:0,
+   explain:'Wie bei A2: Eisen verstärkt das Feld. Die Änderung ist größer – der Ausschlag auch.'},
+ {t:'mc', id:'s3-B1c', label:'B1', q:'Aufbau d): Wie kann Faraday hier eine Spannung induzieren?', opts:['Den Eisenstab (oder einen Magneten) bewegen bzw. wegnehmen.','Alles ruhig liegen lassen.','Die Spule mit Batterie anschließen und warten.'], a:0,
+   explain:'Wenn man den Eisenstab bewegt oder einen Magneten wegnimmt, ändert sich das Magnetfeld in der Spule → Spannung.'},
+
+ {t:'h2', text:'3.9 Abschlusstest', id:'s3-t'},
+ {t:'match', id:'s3-v1', q:'Wörter: Was heißt das auf Englisch?', pairs:[['induzieren','to induce'],['das Vorzeichen','sign (+ / –)'],['die Wechselspannung','alternating voltage'],['der Eisenkern','iron core'],['der Schalter','switch'],['der Betrag','magnitude']]},
+ {t:'match', id:'s3-v2', q:'Wörter: Was heißt das auf Deutsch?', reverse:true, pairs:[['das Spannungsmessgerät','voltmeter'],['der Stabmagnet','bar magnet'],['die Gleichspannung','direct voltage'],['relativ zueinander','relative to each other'],['die Feldlinie','field line'],['das Kraftwerk','power station']]},
+ {t:'cloze', id:'s3-t1', q:'Der wichtigste Satz – ergänze.', lines:['Eine Spannung wird induziert, wenn sich das {*Magnetfeld|Material|Messgerät} in der Spule {*ändert|nicht ändert}.','Ist das Feld {*konstant|stark}, dann gibt es keine Induktionsspannung.']},
+ {t:'mc', id:'s3-t2', q:'Ein Magnet liegt neben einer Spule. Dann bewegt sich die Spule weg vom Magneten. Was passiert?', opts:['Es wird eine Spannung induziert, weil das Feld in der Spule schwächer wird.','Nichts, weil sich der Magnet nicht bewegt.','Es wird eine Spannung induziert, weil der Magnet stark ist.'], a:0, explain:'Relative Bewegung → Feld in der Spule ändert sich → Spannung.'},
+ {t:'mc', id:'s3-t3', q:'Warum liefert ein Generator im Kraftwerk eine Wechselspannung?', opts:['Weil sich Magnet und Spule drehen. Das Feld in der Spule ändert ständig seine Stärke und Richtung.','Weil das Kraftwerk Batterien benutzt.','Weil der Strom im Kabel hin und her fließen muss.'], a:0, explain:'Drehung → ständige Änderung mit wechselnder Richtung → Wechselspannung.'},
+ {t:'mc', id:'s3-t4', q:'Handy-Ladegerät ohne Kabel: In der Ladestation ist eine Spule mit Wechselstrom. Im Handy ist eine zweite Spule. Warum funktioniert das?', opts:['Der Wechselstrom erzeugt ein sich ständig änderndes Magnetfeld. Dieses induziert im Handy eine Spannung.','Der Strom springt durch die Luft ins Handy.','Das Handy ist magnetisch.'], a:0, explain:'Wie bei A1 b: Wechselstrom → sich änderndes Magnetfeld → Induktion in der zweiten Spule.'},
+ {t:'mc', id:'s3-t5', q:'Welcher B(t)-Graph induziert <b>keine</b> Spannung?', graphs:true, opts:[
+   graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,pts:[[0,3],[4,3]],noXnum:true,noYnum:true}),
+   graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,pts:[[0,0.5],[4,3.5]],noXnum:true,noYnum:true}),
+   graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,pts:[[0,3.5],[4,0.5]],noXnum:true,noYnum:true}),
+   graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,series:[{fn:t=>2+1.5*Math.sin(t*2)}],noXnum:true,noYnum:true})], a:0,
+   explain:'Nur der konstante Graph: B ändert sich nicht → keine Spannung. Auch wenn B groß ist!'},
+ {t:'html', html:`<div class="box merke"><div class="boxtitle">✅ Zusammenfassung Sitzung 3</div>
+  <ul><li>Eine Spannung wird <b>induziert</b>, wenn sich das <b>Magnetfeld in der Spule ändert</b> (die Anzahl der Feldlinien durch die Spule).</li>
+  <li>Wie die Änderung passiert, ist egal: Magnet bewegen, Spule bewegen, Spule drehen, Strom im Elektromagneten ändern …</li>
+  <li>Konstantes Feld → keine Spannung. Schnellere Änderung → größere Spannung. Umgekehrte Änderung → umgekehrtes Vorzeichen.</li>
+  <li>Drehung → Wechselspannung (Generator).</li></ul>
+  <div class="heft" style="border-style:solid"><div class="htitle">✍️ Alle Merksätze – stehen sie in deinem Heft?</div>
+  <ol class="htext" style="font-size:1rem"><li>Wenn sich ein Magnet und eine Spule relativ zueinander bewegen, dann wird eine Spannung induziert. Das Vorzeichen der Spannung hängt von der Bewegungsrichtung ab. Je schneller die Bewegung ist, desto größer ist die Spannung.</li>
+  <li>Wenn eine Spule in einem Magnetfeld gedreht wird, dann wird eine Wechselspannung induziert.</li>
+  <li>Wenn sich in einer Spule das Magnetfeld ändert, dann wird eine Spannung induziert. Ist das Feld konstant, dann gibt es keine Induktionsspannung.</li></ol></div>
+  <p class="saveHint">💾 <b>Speichere jetzt deinen Fortschritt!</b></p></div>`}
+];
+
+/* =====================================================================
+   App shell: tabs, training, summary, init
+   ===================================================================== */
+function buildShell(){
+  document.body.innerHTML = `
+  <div id="topbar"><div class="row">
+    <div class="title">⚡ Physik 9 · Magnetfeld & Induktion<small>GSIS · <span id="nameShow"></span></small></div>
+    <div class="counter" title="Sterne"><span class="big">⭐</span><span class="big" id="starCount">0</span><span style="opacity:.7">/ <span id="starTotal"></span></span></div>
+    <div class="counter" title="Falsche Antworten"><span>✗</span><span id="wrongCount">0</span><span style="opacity:.7;font-weight:400;font-size:.8rem">falsch</span></div>
+    <span class="cstat" id="cloudStatus"></span>
+    <button class="tbtn alt" id="btnSave">💾 Speichern</button>
+    <button class="tbtn" id="btnLoad">📂 Laden</button>
+  </div>
+  <div id="tabs">${SESSIONS.map(s=>`<button data-p="${s.id}">${s.tab}${s.id!=='sum'?'<span class="tabstars"></span>':''}</button>`).join('')}</div>
+  <div id="unsaved">⚠ Du hast neue Sterne, die noch nicht gespeichert sind. → 💾 Speichern</div>
+  </div>
+  <main>
+    <div id="backupBanner"></div>
+    ${SESSIONS.map(s=>`<section class="page" id="page_${s.id}"></section>`).join('')}
+  </main>
+  <div id="modal"><div class="mbox"><button class="mclose" aria-label="Schließen">×</button><div class="mcontent"></div></div></div>
+  <div id="toast"></div>`;
+  $('#btnSave').onclick=saveDialog; $('#btnLoad').onclick=loadDialog;
+  if(CLOUD_ON){ $('#btnLoad').textContent='🚪 Abmelden'; $('#btnLoad').onclick=()=>doLogout(null); }
+  $('#unsaved').onclick=saveDialog; $('#unsaved').style.cursor='pointer';
+  $('#modal .mclose').onclick=closeModal;
+  $('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+  $$('#tabs button').forEach(b=>b.onclick=()=>showPage(b.dataset.p));
+}
+function showPage(id, noScroll){
+  $$('.page').forEach(p=>p.classList.toggle('active', p.id==='page_'+id));
+  $$('#tabs button').forEach(b=>b.classList.toggle('active', b.dataset.p===id));
+  try{ localStorage.setItem(APP_KEY+'_tab', id); }catch(e){}
+  if(!noScroll) window.scrollTo(0,0);
+}
+
+/* ---------------- training page ---------------- */
+function buildWelcome(){
+  const p=$('#page_t');
+  p.innerHTML=`<h1>Start</h1>
+   <div class="card"><p style="font-size:1.15rem">👋 Hallo <b id="wName">${escH(STATE.name)}</b>! Du bist angemeldet.</p>
+   <p>Deine Sterne werden <b>automatisch gespeichert</b> ☁️ – auf jedem iPad. Oben siehst du: <b>☁️ Gespeichert</b>. <span class="en">(automatically saved)</span></p>
+   <ul><li>Lies zuerst die Texte. Dann beantworte die Aufgaben.</li>
+   <li>Für jede richtige Aufgabe bekommst du einen ⭐. Falsche Antworten werden gezählt – also erst denken, dann klicken!</li>
+   <li>Nach 3 falschen Versuchen kannst du die Lösung sehen (dann aber ohne Stern).</li>
+   <li>Am Ende der Stunde: oben auf <b>🚪 Abmelden</b> tippen. <span class="en">(abmelden = log out)</span></li></ul>
+   <button class="bigbtn" id="tGo">Weiter zu Sitzung 1 ➜</button></div>
+   <div class="box info"><div class="boxtitle">📂 Hast du schon eine Spielstand-Datei oder einen Code (von früher)?</div>
+   Lade sie hier. Deine Sterne kommen dazu – es geht nichts verloren.<br><button class="bigbtn gray" id="wLoad" style="margin-top:8px">📂 Alte Datei / Code laden</button></div>`;
+  $('#tGo').onclick=()=>showPage('s1');
+  $('#wLoad').onclick=loadDialog;
+}
+function buildTraining(){
+  if(CLOUD_ON) return buildWelcome();
+  const p=$('#page_t');
+  const canShare = !!(navigator.canShare && window.File);
+  p.innerHTML = `
+   <h1>Start: Sterne sammeln und speichern üben</h1>
+   <p class="lead">Bevor wir mit Physik anfangen, üben wir das <b>Speichern</b> und <b>Laden</b>. Das ist wichtig! <span class="en">(practise saving and loading first)</span></p>
+   <div class="box warn"><div class="boxtitle">Warum?</div>Diese Seite vergisst deine Sterne vielleicht, wenn du sie schließt. Darum gilt:<br>
+   📂 <b>Am Anfang jeder Stunde: Laden.</b> &nbsp; 💾 <b>Am Ende jeder Stunde: Speichern.</b></div>
+   <div class="starstage" id="tStage"></div>
+
+   <div class="step" id="st1"><div class="sn">1</div><div class="sbody"><h3>Name eingeben und ersten Stern holen</h3>
+     <p><input class="name" id="nameInput" placeholder="Vorname Nachname" autocomplete="name"></p>
+     <label class="trainbox"><input type="checkbox" id="tCheck"> Ich bin bereit! Gib mir meinen ersten Stern. ⭐</label>
+     <div class="small" id="tNameMsg"></div></div></div>
+
+   <div class="step" id="st2"><div class="sn">2</div><div class="sbody"><h3>Fortschritt speichern</h3>
+     <p>Speichere jetzt deinen Stern. Wähle <b>einen</b> Weg:</p>
+     <button class="bigbtn" id="tSaveFile">💾 Als Datei speichern</button>
+     ${canShare?'<button class="bigbtn gray" id="tShare">📤 Teilen / In Dateien sichern</button>':''}
+     <button class="bigbtn gray" id="tCopy">📋 Code kopieren</button>
+     <div class="small" style="margin-top:6px"><b>iPad:</b> Tippe auf „Laden“. Die Datei ist dann in der App <b>Dateien</b> → <b>Downloads</b>. &nbsp;<b>Laptop:</b> Ordner <b>Downloads</b>.<br>
+     <b>Code:</b> Füge den Code in Notizen / OneNote ein (lange auf das Feld tippen → Einsetzen).</div>
+     <textarea class="code" id="tCode" readonly placeholder="Hier erscheint der Code, wenn du „Code kopieren“ drückst."></textarea>
+     <div class="okmsg" id="tSaveMsg"></div></div></div>
+
+   <div class="step" id="st3"><div class="sn">3</div><div class="sbody"><h3>Fortschritt löschen</h3>
+     <p>Jetzt tun wir so, als ob die Seite alles vergessen hat. Drücke auf <b>Löschen</b>. Dein Stern verschwindet!</p>
+     <button class="bigbtn red" id="tErase">🗑 Fortschritt löschen</button>
+     <div class="small" id="tEraseMsg"></div></div></div>
+
+   <div class="step" id="st4"><div class="sn">4</div><div class="sbody"><h3>Fortschritt laden</h3>
+     <p>Hol dir deinen Stern zurück! Lade deine Datei <b>oder</b> füge deinen Code ein.</p>
+     <p><b>Datei:</b> <input type="file" id="tFile" accept=".txt,text/plain,.json,application/json"></p>
+     <div class="small">iPad: „Durchsuchen“ → <b>Downloads</b> → Datei <i>Induktion_…txt</i> antippen.</div>
+     <p><b>Code:</b></p><textarea class="code" id="tPaste" placeholder="Code hier einfügen (beginnt mit IND9-…)"></textarea>
+     <button class="bigbtn gray" id="tPasteBtn">Code laden</button>
+     <div class="loaderr errmsg"></div></div></div>
+
+   <div class="step" id="st5"><div class="sn">5</div><div class="sbody"><h3>Geschafft – noch einmal speichern!</h3>
+     <p>Du bist jetzt <b>Speicher-Profi</b> und hast dafür einen zweiten Stern bekommen. Dieser Stern ist aber noch nicht gespeichert. Speichere also noch einmal!</p>
+     <button class="bigbtn green" id="tSave2">💾 Noch einmal speichern</button>
+     <button class="bigbtn gray" id="tGo">Weiter zu Sitzung 1 ➜</button></div></div>
+
+   <div class="box info"><div class="boxtitle">🆘 Probleme beim Speichern?</div>
+   <ul><li><b>Öffne die Seite im Browser</b> (Safari, Chrome, Edge) – nicht in einer Vorschau. In einer Vorschau funktionieren die Knöpfe nicht.</li>
+   <li>Nimm beim Laden immer die <b>neueste</b> Datei (das Datum steht im Namen). Heißt die Datei „… (1).txt“? Kein Problem – das geht auch.</li>
+   <li>Datei klappt nicht? Nimm den <b>Code</b> und speichere ihn in Notizen oder OneNote.</li>
+   <li>Beim Laden gehen <b>nie</b> Sterne verloren. Die Sterne aus der Datei kommen dazu.</li>
+   <li>Oben rechts sind immer die Knöpfe <b>💾 Speichern</b> und <b>📂 Laden</b>.</li></ul></div>`;
+
+  const ni=$('#nameInput');
+  ni.value=STATE.name||'';
+  ni.addEventListener('input',()=>{ STATE.name=ni.value.trim(); backupToBrowser(); updateCounters(false); });
+  $('#tCheck').addEventListener('change',e=>{
+    if(!STATE.name){ e.target.checked=false; $('#tNameMsg').innerHTML='<span class="errmsg">Bitte zuerst deinen Namen eingeben.</span>'; ni.focus(); return; }
+    $('#tNameMsg').textContent='';
+    if(e.target.checked) awardStar('t-1', $('#tStage'));
+  });
+  const needStar=()=>{ if(!STATE.solved['t-1']){ toast('Hol dir zuerst den Stern in Schritt 1.'); return false; } return true; };
+  $('#tSaveFile').onclick=()=>{ if(needStar()) saveFile(); };
+  if(canShare) $('#tShare').onclick=()=>{ if(needStar()) shareFile(); };
+  $('#tCopy').onclick=()=>{ if(needStar()) copyCode($('#tCode')); };
+  let armed=false, armT=null;
+  $('#tErase').onclick=()=>{
+    if(!TRAIN.saved){ $('#tEraseMsg').innerHTML='<span class="errmsg">Stopp! Du hast noch nicht gespeichert (Schritt 2).</span>'; return; }
+    if(!armed){ armed=true; $('#tErase').textContent='⚠ Wirklich löschen? Nochmal drücken!'; clearTimeout(armT); armT=setTimeout(()=>{armed=false; $('#tErase').textContent='🗑 Fortschritt löschen';},5000); return; }
+    armed=false; $('#tErase').textContent='🗑 Fortschritt löschen';
+    eraseAll(); TRAIN.erased=true; TRAIN.saved=false;
+    $('#tEraseMsg').innerHTML='Oh nein – der Stern ist weg! 😱 Keine Sorge: Du hast ja gespeichert. Weiter mit Schritt 4.';
+    renderTraining();
+  };
+  $('#tFile').addEventListener('change',e=>{ loadFromFile(e.target.files[0]); e.target.value=''; });
+  $('#tPasteBtn').onclick=()=>loadFromCode($('#tPaste').value);
+  $('#tSave2').onclick=()=>saveDialog();
+  $('#tGo').onclick=()=>showPage('s1');
+  ORDER.push('t-1','t-2');
+  REFRESHERS.push(()=>{ $('#tCheck').checked=!!STATE.solved['t-1']; ni.value=STATE.name||''; });
+}
+function onLoadedForTraining(){
+  if(TRAIN.erased && STATE.solved['t-1'] && !STATE.solved['t-2']){
+    TRAIN.erased=false;
+    setTimeout(()=>{ awardStar('t-2', $('#tStage')); toast('🎉 Super! Dein Stern ist zurück. Du bist jetzt Speicher-Profi: +1 ⭐', 4500); renderTraining(); }, 600);
+  }
+}
+function renderTraining(){
+  if(!$('#st1')) return;
+  const s1=!!STATE.solved['t-1']||!!STATE.solved['t-2'], s4=!!STATE.solved['t-2'];
+  const s2=TRAIN.saved||TRAIN.erased||s4, s3=TRAIN.erased||s4, s5=s4 && !DIRTY;
+  const ok=[s1,s2,s3,s4,s5];
+  const cur=ok.indexOf(false);
+  ok.forEach((v,i)=>{ const el=$('#st'+(i+1)); el.classList.toggle('ok',v); el.classList.toggle('cur',i===cur); $('.sn',el).textContent = v?'✓':(i+1); });
+  $('#tStage').innerHTML = `<span class="${STATE.solved['t-1']?'':'empty'}">⭐</span><span class="${STATE.solved['t-2']?'':'empty'}">⭐</span>`;
+  $('#tCheck').checked=!!STATE.solved['t-1'];
+  $('#tSaveMsg').textContent = TRAIN.saved ? '✓ Gespeichert! Weiter mit Schritt 3.' : '';
+}
+
+/* ---------------- session pages ---------------- */
+function buildSession(id, blocks, nextId, nextLabel){
+  const p=$('#page_'+id);
+  const body=h('div'); p.appendChild(body);
+  renderBlocks(body, blocks, id);
+  // table of contents after the intro
+  const h2s=$$('h2[id]',body);
+  if(h2s.length){
+    const toc=h('div',{class:'card'}); toc.innerHTML=`<b>Inhalt</b><ul class="toc">${h2s.map(x=>`<li><a href="#${x.id}">${x.textContent}</a></li>`).join('')}</ul>`;
+    body.insertBefore(toc, h2s[0]);
+    $$('a',toc).forEach(a=>a.onclick=e=>{ e.preventDefault(); const t=document.getElementById(a.getAttribute('href').slice(1)); window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-110, behavior:'smooth'}); });
+  }
+  const nav=h('div',{class:'sessionnav'});
+  nav.innerHTML=`<button class="bigbtn gray" data-a="save">💾 Fortschritt speichern</button>${nextId?`<button class="bigbtn" data-a="next">${nextLabel} ➜</button>`:''}`;
+  $('[data-a=save]',nav).onclick=saveDialog;
+  if(nextId) $('[data-a=next]',nav).onclick=()=>showPage(nextId);
+  p.appendChild(nav);
+}
+
+/* ---------------- summary ---------------- */
+function renderSummary(){
+  const p=$('#page_sum'); if(!p || !ORDER.length) return;
+  const rows=SESSIONS.filter(s=>s.id!=='sum' && !(CLOUD_ON && s.id==='t')).map(s=>{
+    const st=starCount(s.id), tot=totalStars(s.id), w=wrongCount(s.id), rv=Object.keys(STATE.revealed).filter(k=>STATE.revealed[k]&&sessOf(k)===s.id).length;
+    return `<tr><td>${s.tab}</td><td class="n">⭐ ${st} / ${tot}</td><td><div class="bar"><div style="width:${tot?Math.round(100*st/tot):0}%"></div></div></td><td class="n">${w}</td><td class="n">${rv}</td></tr>`;
+  }).join('');
+  const hard = Object.keys(STATE.wrong).filter(k=>STATE.wrong[k]>0).sort((a,b)=>STATE.wrong[b]-STATE.wrong[a]).slice(0,6).map(k=>{
+    const q=document.getElementById('q_'+k); const lab = q? ($('.qnum',q)?.textContent||'') : k; const sess=SESSIONS.find(s=>s.id===sessOf(k));
+    return `<li><a href="#" data-q="${k}">${sess?sess.short:''} – ${lab}</a>: ${STATE.wrong[k]}× falsch${STATE.solved[k]?' (jetzt gelöst ✓)':''}</li>`; }).join('');
+  p.innerHTML=`<h1>Mein Ergebnis</h1>
+   <div class="card"><p><b>Name:</b> ${STATE.name||'<i>kein Name – bitte im Start-Tab eingeben</i>'}</p>
+   <table class="sum"><thead><tr><th>Teil</th><th>Sterne</th><th></th><th>✗ falsch</th><th>Lösung angezeigt</th></tr></thead><tbody>${rows}
+   <tr><th>Gesamt</th><th>⭐ ${starCount()} / ${totalStars()}</th><th></th><th>${wrongCount()}</th><th>${Object.keys(STATE.revealed).filter(k=>STATE.revealed[k]).length}</th></tr></tbody></table>
+   ${STATE.tampered?'<p class="errmsg">⚠ Eine geladene Datei wurde verändert.</p>':''}
+   ${STATE.foreign&&STATE.foreign.length?`<p class="errmsg">⚠ Es wurde eine Datei von einer anderen Person geladen: ${STATE.foreign.join(', ')}</p>`:''}
+   <p class="small">Begonnen: ${STATE.created?new Date(STATE.created).toLocaleString('de-DE'):'-'} · Letzte Änderung: ${STATE.updated?new Date(STATE.updated).toLocaleString('de-DE'):'-'}</p></div>
+   ${hard?`<div class="card"><b>Diese Aufgaben waren schwer für dich – schau sie dir noch einmal an:</b><ul>${hard}</ul></div>`:''}
+   <div class="card">${CLOUD_ON?'<b>Für die Lehrkraft:</b> Dein Ergebnis ist automatisch online gespeichert. Deine Lehrkraft kann es sehen. ☁️<br><br>':'<b>Für die Lehrkraft:</b> Speichere deinen Fortschritt als Datei und gib die Datei ab, wenn deine Lehrkraft das möchte.<br><br>'}
+   <button class="bigbtn" id="sumSave">💾 Speichern</button></div>`;
+  $('#sumSave').onclick=saveDialog;
+  $$('a[data-q]',p).forEach(a=>a.onclick=e=>{ e.preventDefault(); const id=a.dataset.q; showPage(sessOf(id), true); const el=document.getElementById('q_'+id); if(el) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-120}); });
+}
+
+/* ---------------- init ---------------- */
+function init(){
+  if(CLOUD_ON){ document.documentElement.classList.add('cloud'); const bk=readBackup(); if(bk) STATE=Object.assign(freshState(),bk); }
+  buildShell();
+  buildTraining();
+  buildSession('s1', S1, 's2', 'Weiter zu Sitzung 2');
+  buildSession('s2', S2, 's3', 'Weiter zu Sitzung 3');
+  buildSession('s3', S3, 'sum', 'Zu meinem Ergebnis');
+  const bk=readBackup();
+  if(!CLOUD_ON && bk && Object.keys(bk.solved).length){
+    const b=$('#backupBanner'); b.classList.add('show');
+    b.innerHTML=`🔎 Dieser Browser hat noch einen Fortschritt gespeichert: <b>${bk.name||'ohne Name'}</b>, ⭐ ${Object.keys(bk.solved).length}. <button class="bigbtn gray" id="bkLoad">Laden</button> <button class="vbtn" id="bkNo">Nein, danke</button>`;
+    $('#bkLoad').onclick=loadFromBackup; $('#bkNo').onclick=()=>b.classList.remove('show');
+  }
+  refreshAllQuestions();
+  updateCounters(false);
+  let tab='t'; try{ const t=localStorage.getItem(APP_KEY+'_tab'); if(t && $('#page_'+t)) tab=t; }catch(e){}
+  showPage(tab, true);
+  window.addEventListener('beforeunload',e=>{ if(!CLOUD_ON && DIRTY && starCount()>0){ e.preventDefault(); e.returnValue=''; } });
+  Cloud.init({
+    app:APP_ID,
+    titel:'Physik 9: Magnetfeld & Induktion',
+    getState:()=>({name:STATE.name,solved:STATE.solved,wrong:STATE.wrong,revealed:STATE.revealed,created:STATE.created,tampered:STATE.tampered||undefined,foreign:STATE.foreign||undefined}),
+    hasProgress:()=>starCount()>0||wrongCount()>0,
+    setState:st=>{ STATE = st ? Object.assign(freshState(), st, {name:STATE.name}) : freshState(); DIRTY=false; backupToBrowser(); refreshAllQuestions(); updateCounters(false); },
+    getSummary:cloudSummary,
+    onLogin:info=>{ STATE.name=info.voll||info.name||info.u; backupToBrowser(); updateCounters(false); const w=$('#wName'); if(w) w.textContent=STATE.name; setTimeout(()=>Cloud.changed(),0); }
+  });
+}
+
+/* ---------------- Übersicht für die Lehrkraft (Google Sheet) ---------------- */
+// Eine Spalte pro Abschnitt (1.1 … 3.9): Sterne / Aufgaben, falsche Antworten
+const SECTIONS=[];
+[['s1',S1,1],['s2',S2,2],['s3',S3,3]].forEach(([sid,blocks,n])=>{
+  let cur={key:sid+'-0',label:n+'.0',title:'Sitzung '+n+': Einstieg',ids:[]};
+  const push=()=>{ if(cur.ids.length) SECTIONS.push(cur); };
+  blocks.forEach(b=>{
+    if(b.t==='h2'){ push(); const m=String(b.text).match(/^(\d+\.\d+)\s+(.*)$/); cur={key:b.id||(sid+'-'+SECTIONS.length),label:m?m[1]:b.text,title:b.text,ids:[]}; }
+    else if(b.id && ['mc','num','cloze','match','heft'].includes(b.t)) cur.ids.push(b.id);
+  });
+  push();
+});
+function cloudSummary(){
+  const tasks={};
+  SECTIONS.forEach(s=>{
+    const sol=s.ids.filter(i=>STATE.solved[i]).length, rv=s.ids.filter(i=>STATE.revealed[i]&&!STATE.solved[i]).length;
+    const err=s.ids.reduce((a,i)=>a+(STATE.wrong[i]||0),0);
+    tasks[s.key]=[sol,s.ids.length,err,sol+rv,s.ids.length,s.label,s.title];
+  });
+  const ids=Object.keys(tasks), heft=ORDER.filter(i=>/heft/.test(i));
+  const sess=n=>starCount('s'+n)+' / '+totalStars('s'+n);
+  const rv=Object.keys(STATE.revealed).filter(k=>STATE.revealed[k]&&!STATE.solved[k]).length;
+  const note=(STATE.tampered?'Datei wurde verändert. ':'')+((STATE.foreign&&STATE.foreign.length)?'Datei von: '+STATE.foreign.join(', '):'');
+  return {stars:starCount(),max:totalStars(),err:wrongCount(),done:ids.filter(i=>tasks[i][3]>=tasks[i][4]).length,n:ids.length,tasks,
+    labels:{sterne:'⭐ Sterne',max:'⭐ max.',fehler:'✗ falsch',erledigt:'Abschnitte fertig'},
+    extra:{s1:['Sitzung 1 ⭐',sess(1)],s2:['Sitzung 2 ⭐',sess(2)],s3:['Sitzung 3 ⭐',sess(3)],
+      heft:['✍️ Merksätze im Heft',heft.filter(i=>STATE.solved[i]).length+' / '+heft.length],
+      rv:['👀 Lösung angezeigt',String(rv)],hinweis:['⚠ Hinweis',note]}};
+}
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
