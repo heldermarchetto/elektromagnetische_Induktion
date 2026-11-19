@@ -227,6 +227,12 @@ svg.graph{display:block;max-width:100%;height:auto;margin:0 auto}
 .fs-msg.bad{display:block;background:var(--redbg);color:#9b1c1c}
 .fs-msg.info{display:block;background:#eef2ff;color:#3730a3}
 details summary{cursor:pointer}
+.heft .hsteps{margin:4px 0 10px;padding-left:22px;color:var(--ink)}
+.heft .hfoto{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.heft .hfoto .bigbtn{margin:0;display:inline-block;cursor:pointer}
+.heft .hstat{font-weight:600;color:var(--muted)}
+.heft.done .hstat{color:var(--green)}
+.heft .himg{display:none;max-width:100%;max-height:320px;border-radius:10px;margin-top:10px;border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -424,7 +430,8 @@ let TRAIN = {saved:false, erased:false};
 const QREG = {};          // id -> {session, kind, api}
 const ORDER = [];         // question ids in order
 
-function freshState(){ return {v:1, name:'', solved:{}, wrong:{}, revealed:{}, created:new Date().toISOString(), updated:null}; }
+function freshState(){ return {v:1, name:'', solved:{}, wrong:{}, revealed:{}, photos:{}, created:new Date().toISOString(), updated:null}; }
+function photosMeta(keepPending){ const o={}; for(const k in (STATE.photos||{})){ const p=STATE.photos[k]; o[k] = (keepPending && p.src && !p.fid) ? {src:p.src,w:p.w,h:p.h,t:p.t} : {fid:p.fid,w:p.w,h:p.h,t:p.t}; } return o; }
 
 /* ---------- small helpers ---------- */
 const $ = (s, el=document) => el.querySelector(s);
@@ -492,7 +499,7 @@ function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64ToUtf8(b){ return decodeURIComponent(escape(atob(b))); }
 
 function makeCode(){
-  const json = JSON.stringify(STATE);
+  const json = JSON.stringify(Object.assign({}, STATE, {photos:photosMeta(false)}));
   const hsh = hashStr(json+SALT).toString(36);
   return 'IND9-' + utf8ToB64(json) + '-' + hsh;
 }
@@ -504,7 +511,7 @@ function parseCode(text){
   const st = JSON.parse(json);
   const ok = hashStr(json+SALT).toString(36) === m[2];
   if(!st || typeof st!=='object' || !st.solved) throw new Error('Datei ist beschädigt.');
-  st.wrong = st.wrong||{}; st.revealed = st.revealed||{};
+  st.wrong = st.wrong||{}; st.revealed = st.revealed||{}; st.photos = st.photos||{};
   if(!ok) st.tampered = true;
   return st;
 }
@@ -551,7 +558,7 @@ function markSaved(how){
   updateCounters(false);
   toast('💾 Gespeichert ('+how+'). Sterne: '+starCount());
 }
-function backupToBrowser(){ try{ localStorage.setItem(APP_KEY, JSON.stringify(STATE)); }catch(e){} }
+function backupToBrowser(){ try{ localStorage.setItem(APP_KEY, JSON.stringify(Object.assign({}, STATE, {photos:photosMeta(true)}))); }catch(e){ try{ localStorage.setItem(APP_KEY, JSON.stringify(Object.assign({}, STATE, {photos:photosMeta(false)}))); }catch(e2){} } }
 function readBackup(){ try{ const s=localStorage.getItem(APP_KEY); if(!s) return null; const st=JSON.parse(s); return st && st.solved ? st : null; }catch(e){ return null; } }
 function clearBackup(){ try{ localStorage.removeItem(APP_KEY); }catch(e){} }
 
@@ -562,6 +569,7 @@ function mergeState(st){
   for(const k in st.wrong){ STATE.wrong[k] = Math.max(STATE.wrong[k]||0, st.wrong[k]||0); }
   for(const k in st.revealed){ if(st.revealed[k] && !STATE.solved[k]) STATE.revealed[k]=true; }
   if(st.tampered) STATE.tampered = true;
+  for(const k in (st.photos||{})){ if(!STATE.photos[k]) STATE.photos[k]=st.photos[k]; }
   if(st.created && (!STATE.created || st.created < STATE.created)) STATE.created = st.created;
 }
 function applyLoaded(st, how){
@@ -807,15 +815,66 @@ function matchWidget(def, sess){
 }
 
 /* Heft sentence: star for writing it into the exercise book */
+const PHOTO_KEYS = [], PHOTO_REFRESH = [];
+function compressImg(file, max = 1600, q = .72){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res({src: c.toDataURL('image/jpeg', q), w: c.width, h: c.height});
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bild')); };
+    img.src = url;
+  });
+}
+/* Heft sentence: write it into the exercise book (+ optional photo → Google Drive) */
 function heftWidget(def){
   const el=h('div',{class:'heft', id:'q_'+def.id});
-  el.innerHTML=`<div class="htitle">✍️ Merksatz – schreibe ihn in dein Heft! <span class="en">(copy into your exercise book)</span><span class="qstar" style="margin-left:auto;font-size:1.3rem">⭐</span></div>
+  if(!def.foto){
+    el.innerHTML=`<div class="htitle">✍️ Merksatz – schreibe ihn in dein Heft! <span class="en">(copy into your exercise book)</span><span class="qstar" style="margin-left:auto;font-size:1.3rem">⭐</span></div>
+      <div class="htext">${def.text}</div>
+      <label><input type="checkbox"> Ich habe den Merksatz sauber in mein Heft geschrieben.</label>
+      ${def.src?`<div class="small" style="margin-top:6px">${def.src}</div>`:''}`;
+    const cb=$('input',el);
+    const api={ refresh(){ cb.checked=!!STATE.solved[def.id]; cb.disabled=!!STATE.solved[def.id]; el.classList.toggle('done',cb.checked); $('.qstar',el).style.filter=cb.checked?'none':'grayscale(1)'; $('.qstar',el).style.opacity=cb.checked?1:.35; } };
+    cb.addEventListener('change',()=>{ if(cb.checked){ awardStar(def.id, $('.qstar',el)); api.refresh(); } });
+    return {el,api};
+  }
+  PHOTO_KEYS.push(def.foto);
+  el.innerHTML=`<div class="htitle">✍️ Merksatz – schreibe ihn in dein Heft und fotografiere ihn! <span class="en">(copy it neatly, then take a photo)</span><span class="qstar" style="margin-left:auto;font-size:1.3rem">⭐</span></div>
     <div class="htext">${def.text}</div>
-    <label><input type="checkbox"> Ich habe den Merksatz sauber in mein Heft geschrieben.</label>
-    ${def.src?`<div class="small" style="margin-top:6px">${def.src}</div>`:''}`;
-  const cb=$('input',el);
-  const api={ refresh(){ cb.checked=!!STATE.solved[def.id]; cb.disabled=!!STATE.solved[def.id]; el.classList.toggle('done',cb.checked); $('.qstar',el).style.filter=cb.checked?'none':'grayscale(1)'; $('.qstar',el).style.opacity=cb.checked?1:.35; } };
-  cb.addEventListener('change',()=>{ if(cb.checked){ awardStar(def.id, $('.qstar',el)); api.refresh(); } });
+    ${def.src?`<div class="small" style="margin:-4px 0 8px">${def.src}</div>`:''}
+    <ol class="hsteps"><li><b>Schreibe</b> den Merksatz <b>sauber</b> in dein Heft: Überschrift „Elektromagnetische Induktion“, Datum, ordentliche Schrift.</li>
+    <li><b>Fotografiere</b> den Merksatz in deinem Heft: Heft flach, iPad gerade darüber, gutes Licht. Das Foto geht direkt an deine Lehrkraft.</li></ol>
+    <div class="hfoto"><label class="bigbtn"><span class="hlab">📷 Foto aufnehmen</span><input type="file" accept="image/*" capture="environment" hidden></label><span class="hstat"></span></div>
+    <img class="himg" alt="Dein Foto">`;
+  const inp=$('input',el), st=$('.hstat',el), img=$('.himg',el), lab=$('.hlab',el), star=$('.qstar',el);
+  inp.addEventListener('change', async ()=>{
+    const f=inp.files&&inp.files[0]; inp.value=''; if(!f) return;
+    st.textContent='⏳ Foto wird vorbereitet …';
+    try{
+      const r=await compressImg(f);
+      STATE.photos[def.foto]={src:r.src,w:r.w,h:r.h,t:Date.now()};
+      if(!STATE.solved[def.id]) awardStar(def.id, star); else changed(false);
+      toast('📷 Foto gespeichert. Es wird jetzt an deine Lehrkraft gesendet.');
+      api.refresh();
+    }catch(e){ st.textContent='❌ Das Foto konnte nicht gelesen werden. Versuche es noch einmal.'; }
+  });
+  const api={ refresh(){
+    const ph=STATE.photos[def.foto], ok=!!STATE.solved[def.id];
+    el.classList.toggle('done', !!ph);
+    star.style.filter=ok?'none':'grayscale(1)'; star.style.opacity=ok?1:.35;
+    if(ph&&ph.src){ img.src=ph.src; img.style.display='block'; } else { img.removeAttribute('src'); img.style.display='none'; }
+    lab.textContent = ph ? '📷 Neues Foto (ersetzen)' : '📷 Foto aufnehmen';
+    st.innerHTML = !ph ? (ok ? '<span class="errmsg">📷 Foto fehlt noch – bitte fotografiere den Merksatz.</span>' : 'Noch kein Foto.')
+      : !CLOUD_ON ? '✅ Foto gespeichert (nur auf diesem Gerät).'
+      : ph.fid ? '✅ Foto ist bei deiner Lehrkraft angekommen (Google Drive).'
+      : ph.src ? '⏳ Foto wird hochgeladen … Lass die Seite offen.'
+      : '⚠️ Das Foto ist nicht angekommen. Bitte mache es noch einmal.';
+  } };
+  PHOTO_REFRESH.push(api.refresh);
   return {el,api};
 }
 
@@ -858,6 +917,7 @@ function renderBlocks(container, blocks, sess){
   });
 }
 function refreshAllQuestions(){ REFRESHERS.forEach(f=>f()); }
+function refreshPhotos(){ PHOTO_REFRESH.forEach(f=>f()); }
 
 /* =====================================================================
    SVG helpers: graphs and field-line pictures
@@ -1442,7 +1502,7 @@ const S3 = [
   <li>Du kannst die Induktion mit Feldlinien erklären (ohne Formel!).</li>
   <li>Du kannst an einem Graphen sagen, wann eine Induktionsspannung da ist.</li>
   <li>Du kannst Aufgaben zu Versuchen mit Magnet und Spule lösen.</li></ul></div>
-  <div class="heft" style="border-style:solid"><div class="htitle">✍️ Dein Heft</div>In dieser Sitzung findest du <b>drei Merksätze</b> in hellblauen Kästen wie diesem. Sie sind die wichtigsten Sätze der Sitzung. <b>Schreibe jeden Merksatz sauber in dein Heft</b> (mit Überschrift „Elektromagnetische Induktion“ und Datum). Danach setzt du den Haken und bekommst einen ⭐. Am Ende der Sitzung stehen alle drei Merksätze noch einmal zusammen.</div>`},
+  <div class="heft" style="border-style:solid"><div class="htitle">✍️ Dein Heft</div>In dieser Sitzung findest du <b>drei Merksätze</b> in hellblauen Kästen wie diesem. Sie sind die wichtigsten Sätze der Sitzung. <b>Schreibe jeden Merksatz sauber in dein Heft</b> (mit Überschrift „Elektromagnetische Induktion“ und Datum). Danach <b>fotografierst</b> du den Merksatz in deinem Heft. Das Foto geht direkt an deine Lehrkraft, und du bekommst einen ⭐. Am Ende der Sitzung stehen alle drei Merksätze noch einmal zusammen.</div>`},
  {t:'mc', id:'s3-i1', q:'Wo wird elektromagnetische Induktion genutzt?', opts:['Generator im Kraftwerk','Windrad','Fahrraddynamo','Induktionsherd','Kabelloses Laden vom Handy','Solarzelle','Taschenlampe mit Batterie'], a:[0,1,2,3,4],
    explain:'Generator, Windrad, Dynamo, Induktionsherd und kabelloses Laden nutzen Induktion. Solarzelle und Batterie erzeugen Spannung anders (mit Licht bzw. mit Chemie).'},
 
@@ -1492,7 +1552,7 @@ const S3 = [
    explain:'Schnellere Bewegung, mehr Windungen und ein stärkerer Magnet ergeben eine größere Spannung. (Teste Windungen in der Simulation!)'},
  {t:'mc', id:'s3-b4', q:'Man hält den Magneten fest und bewegt die Spule über den Magneten. Wird eine Spannung induziert?', opts:['Ja. Es kommt nur auf die relative Bewegung von Magnet und Spule an.','Nein. Nur der Magnet darf sich bewegen.','Nein. Die Spule muss immer stillstehen.'], a:0, explain:'Wichtig ist: Magnet und Spule bewegen sich relativ zueinander. Wer sich bewegt, ist egal.'},
  {t:'mc', id:'s3-b5', q:'Du drehst den Magneten um (N und S tauschen) und schiebst ihn wieder in die Spule. Was ändert sich?', opts:['Das Vorzeichen der Spannung.','Nichts.','Es gibt keine Spannung mehr.'], a:0, explain:'Probiere es in der Simulation: Mit umgedrehtem Magneten zeigt der Zeiger in die andere Richtung.'},
- {t:'heft', id:'s3-heft1', text:'Wenn sich ein Magnet und eine Spule relativ zueinander bewegen, dann wird eine Spannung induziert.<br>Das Vorzeichen der Spannung hängt von der Bewegungsrichtung ab.<br>Je schneller die Bewegung ist, desto größer ist die Spannung.', src:'Merksatz 1 von 3'},
+ {t:'heft', id:'s3-heft1', foto:'MS1', text:'Wenn sich ein Magnet und eine Spule relativ zueinander bewegen, dann wird eine Spannung induziert.<br>Das Vorzeichen der Spannung hängt von der Bewegungsrichtung ab.<br>Je schneller die Bewegung ist, desto größer ist die Spannung.', src:'Merksatz 1 von 3'},
  {t:'mc', id:'s3-b6', label:'Denkaufgabe', q:'Ein Stabmagnet wird <b>durch</b> eine Spule hindurchgeschoben (rein – durch – raus). Wie ändert sich die Anzeige des Spannungsmessgeräts?',
    opts:['Zuerst schlägt der Zeiger in eine Richtung aus. In der Mitte geht er kurz auf null. Dann schlägt er in die andere Richtung aus.','Der Zeiger zeigt die ganze Zeit in dieselbe Richtung.','Der Zeiger bleibt die ganze Zeit bei null.','Der Zeiger schlägt nur in der Mitte der Spule aus.'], a:0,
    explain:'Beim Hineinbewegen wird das Feld in der Spule stärker (z. B. +). Ganz in der Mitte ändert es sich kurz nicht (0). Beim Herauskommen wird es schwächer (−). Teste es in der Simulation mit „langsam durch die Spule“!'},
@@ -1506,7 +1566,7 @@ const S3 = [
   <p>Die Spannung ist abwechselnd <b>positiv</b> und <b>negativ</b>. Das passiert immer wieder. Man nennt das eine <b>Wechselspannung</b>.</p>
   <p>Eine Batterie liefert dagegen eine <b>Gleichspannung</b>: Das Vorzeichen bleibt immer gleich.</p></div>`},
  {t:'custom', render:simRotate},
- {t:'heft', id:'s3-heft2', text:'Wenn eine Spule in einem Magnetfeld gedreht wird, dann wird eine Wechselspannung induziert.', src:'Merksatz 2 von 3'},
+ {t:'heft', id:'s3-heft2', foto:'MS2', text:'Wenn eine Spule in einem Magnetfeld gedreht wird, dann wird eine Wechselspannung induziert.', src:'Merksatz 2 von 3'},
  {t:'mc', id:'s3-d1', q:'Was ist eine Wechselspannung?', opts:['Eine Spannung, die immer wieder ihr Vorzeichen wechselt (+, −, +, −, …).','Eine Spannung, die immer gleich groß ist.','Eine Spannung, die nur positiv ist.'], a:0, explain:'Wechselspannung: abwechselnd positiv und negativ. Aus der Steckdose kommt Wechselspannung.'},
  {t:'mc', id:'s3-d2', q:'Welche Spannung liefert eine Batterie?', opts:['Gleichspannung','Wechselspannung','Gar keine Spannung'], a:0, explain:'Bei einer Batterie bleiben + und − immer gleich: Gleichspannung.'},
  {t:'mc', id:'s3-d3', q:'In der Simulation: Wann ist die Spannung U genau null?', opts:['Wenn die Anzahl der Feldlinien durch die Spule am größten oder am kleinsten ist.','Wenn die Anzahl der Feldlinien null ist.','Die Spannung ist nie null.'], a:0,
@@ -1525,7 +1585,7 @@ const S3 = [
   <li>Wir <b>öffnen den Schalter</b>: Wieder kurz eine Spannung, aber mit <b>umgekehrtem Vorzeichen</b>.</li>
   <li>Wir <b>erhöhen die Stromstärke</b> im Elektromagneten: Das Feld wird stärker. <b>Während</b> das Feld stärker wird, wird eine Spannung induziert.</li></ul>
   <p>Erinnerst du dich an Sitzung 1? <b>B ~ I</b>. Wenn sich die Stromstärke im Elektromagneten ändert, ändert sich auch sein Magnetfeld!</p></div>`},
- {t:'heft', id:'s3-heft3', text:'Wenn sich in einer Spule das Magnetfeld ändert, dann wird eine Spannung induziert.<br>Ist das Feld konstant, dann gibt es keine Induktionsspannung.', src:'Merksatz 3 von 3'},
+ {t:'heft', id:'s3-heft3', foto:'MS3', text:'Wenn sich in einer Spule das Magnetfeld ändert, dann wird eine Spannung induziert.<br>Ist das Feld konstant, dann gibt es keine Induktionsspannung.', src:'Merksatz 3 von 3'},
  {t:'mc', id:'s3-m1', q:'Der Schalter ist schon lange geschlossen. Im Elektromagneten fließt ein konstanter Strom. Was zeigt das Messgerät an der Induktionsspule?', opts:['0 – das Magnetfeld ist konstant.','Eine große Spannung – das Magnetfeld ist stark.','Eine Wechselspannung.'], a:0, explain:'Ein starkes, aber konstantes Feld induziert keine Spannung. Es kommt nur auf die Änderung an.'},
  {t:'mc', id:'s3-m2', q:'Wann wird in der Induktionsspule eine Spannung induziert?', opts:['Beim Schließen des Schalters.','Beim Öffnen des Schalters.','Während man die Stromstärke im Elektromagneten erhöht.','Während ein konstanter Strom fließt.','Wenn der Schalter die ganze Zeit offen ist.'], a:[0,1,2],
    explain:'Immer dann, wenn sich der Strom im Elektromagneten – und damit das Magnetfeld – ändert.'},
@@ -1698,7 +1758,7 @@ const S3 = [
   <li>Wie die Änderung passiert, ist egal: Magnet bewegen, Spule bewegen, Spule drehen, Strom im Elektromagneten ändern …</li>
   <li>Konstantes Feld → keine Spannung. Schnellere Änderung → größere Spannung. Umgekehrte Änderung → umgekehrtes Vorzeichen.</li>
   <li>Drehung → Wechselspannung (Generator).</li></ul>
-  <div class="heft" style="border-style:solid"><div class="htitle">✍️ Alle Merksätze – stehen sie in deinem Heft?</div>
+  <div class="heft" style="border-style:solid"><div class="htitle">✍️ Alle Merksätze – stehen sie in deinem Heft? Hast du alle drei fotografiert? 📷</div>
   <ol class="htext" style="font-size:1rem"><li>Wenn sich ein Magnet und eine Spule relativ zueinander bewegen, dann wird eine Spannung induziert. Das Vorzeichen der Spannung hängt von der Bewegungsrichtung ab. Je schneller die Bewegung ist, desto größer ist die Spannung.</li>
   <li>Wenn eine Spule in einem Magnetfeld gedreht wird, dann wird eine Wechselspannung induziert.</li>
   <li>Wenn sich in einer Spule das Magnetfeld ändert, dann wird eine Spannung induziert. Ist das Feld konstant, dann gibt es keine Induktionsspannung.</li></ol></div>
@@ -1919,9 +1979,13 @@ function init(){
   Cloud.init({
     app:APP_ID,
     titel:'Physik 9: Magnetfeld & Induktion',
-    getState:()=>({name:STATE.name,solved:STATE.solved,wrong:STATE.wrong,revealed:STATE.revealed,created:STATE.created,tampered:STATE.tampered||undefined,foreign:STATE.foreign||undefined}),
+    getState:()=>({name:STATE.name,solved:STATE.solved,wrong:STATE.wrong,revealed:STATE.revealed,photos:photosMeta(false),created:STATE.created,tampered:STATE.tampered||undefined,foreign:STATE.foreign||undefined}),
+    photos:()=>Object.keys(STATE.photos||{}).filter(k=>STATE.photos[k].src).map(k=>({key:k, ph:STATE.photos[k]})),
+    onPhotos:()=>{ backupToBrowser(); refreshPhotos(); },
     hasProgress:()=>starCount()>0||wrongCount()>0,
-    setState:st=>{ STATE = st ? Object.assign(freshState(), st, {name:STATE.name}) : freshState(); DIRTY=false; backupToBrowser(); refreshAllQuestions(); updateCounters(false); },
+    setState:st=>{ const old=STATE.photos||{}; STATE = st ? Object.assign(freshState(), st, {name:STATE.name}) : freshState();
+      if(st) for(const k in STATE.photos){ const o=old[k], p=STATE.photos[k]; if(o && o.src && o.t===p.t){ p.src=o.src; if(!p.fid && o.fid) p.fid=o.fid; } }
+      DIRTY=false; backupToBrowser(); refreshAllQuestions(); updateCounters(false); },
     getSummary:cloudSummary,
     onLogin:info=>{ STATE.name=info.voll||info.name||info.u; backupToBrowser(); updateCounters(false); const w=$('#wName'); if(w) w.textContent=STATE.name; setTimeout(()=>Cloud.changed(),0); }
   });
@@ -1952,8 +2016,10 @@ function cloudSummary(){
   const note=(STATE.tampered?'Datei wurde verändert. ':'')+((STATE.foreign&&STATE.foreign.length)?'Datei von: '+STATE.foreign.join(', '):'');
   return {stars:starCount(),max:totalStars(),err:wrongCount(),done:ids.filter(i=>tasks[i][3]>=tasks[i][4]).length,n:ids.length,tasks,
     labels:{sterne:'⭐ Sterne',max:'⭐ max.',fehler:'✗ falsch',erledigt:'Abschnitte fertig'},
+    fotos:PHOTO_KEYS.slice(),
     extra:{s1:['Sitzung 1 ⭐',sess(1)],s2:['Sitzung 2 ⭐',sess(2)],s3:['Sitzung 3 ⭐',sess(3)],
       heft:['✍️ Merksätze im Heft',heft.filter(i=>STATE.solved[i]).length+' / '+heft.length],
+      fotos:['📷 Merksatz-Fotos',PHOTO_KEYS.filter(k=>STATE.photos[k]&&STATE.photos[k].fid).length+' / '+PHOTO_KEYS.length],
       rv:['👀 Lösung angezeigt',String(rv)],hinweis:['⚠ Hinweis',note]}};
 }
 document.addEventListener('DOMContentLoaded', init);
