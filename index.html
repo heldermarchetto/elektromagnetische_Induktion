@@ -233,6 +233,36 @@ details summary{cursor:pointer}
 .heft .hstat{font-weight:600;color:var(--muted)}
 .heft.done .hstat{color:var(--green)}
 .heft .himg{display:none;max-width:100%;max-height:320px;border-radius:10px;margin-top:10px;border:1px solid var(--line)}
+
+.testbox{border:3px solid #d64545;border-radius:14px;padding:14px 16px;margin:14px 0;background:#fffafa}
+.testbox.done{border-color:var(--green);background:#f6fcf8}
+.testbox .thead{font-size:1.25rem;font-weight:700;margin-bottom:8px}
+.testbox .twarn{background:#fde8e8;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.testbox .tready{margin:6px 0 10px;font-size:.95rem}
+.q.tfail{border-color:#e08a8a}
+.tres{border-radius:10px;padding:12px;margin-top:10px;font-size:1.05rem}
+.tres.good{background:#e3f7ea}.tres.mid{background:#fff4dc}.tres.low{background:#fde8e8}
+ul.tcheck{list-style:none;padding-left:4px}
+/* Uhr, Zeit-Hinweis, Test-Übersicht */
+.q .qclock{margin-left:auto;font-size:.78rem;font-weight:700;color:#5b6577;background:#eef2f8;border-radius:20px;padding:2px 9px;white-space:nowrap}
+.q .qclock+.qstar{margin-left:0}
+.q .qclock.warn{background:#fff1dc;color:#b45309}
+.q .qclock.over{background:#fde2e2;color:#b91c1c}
+.q .qclock.fin{opacity:.7}
+.timenote{display:none;margin:6px 0;background:#fff1dc;border-left:4px solid #f59e0b;border-radius:8px;padding:6px 10px;font-size:.92rem}
+.timenote.show{display:block}
+.feedback.saved{color:#1d4ed8}
+.q.tsaved{border-color:#93c5fd;background:#f5f9ff}
+.awaynote{background:#fff1dc;border:1px solid #f59e0b;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:.93rem}
+.trev{margin-top:12px}
+.trev h4{margin:6px 0}
+.trev .rv{border:1px solid var(--line);border-left:5px solid #9aa6b8;border-radius:10px;padding:8px 12px;margin:8px 0;background:#fff;font-size:.93rem}
+.trev .rv.ok{border-left-color:var(--green)}
+.trev .rv.bad{border-left-color:var(--red)}
+.trev .rvh{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;margin-bottom:3px}
+.trev .rvt{margin-left:auto;font-size:.78rem;color:#5b6577}
+.trev .rvt.warn{color:#b45309}.trev .rvt.over{color:#b91c1c}
+.trev .tip{margin-top:5px;background:#fff8e1;border-radius:8px;padding:5px 10px}
 </style>
 </head>
 <body>
@@ -255,14 +285,21 @@ const Cloud=(function(){
     gesperrt:'Zu viele falsche Versuche. Warte 10 Minuten oder frag deine Lehrerin / deinen Lehrer.',
     klasse:'Diese Seite ist für deine Klasse nicht freigeschaltet. Frag deine Lehrerin / deinen Lehrer.',
     netz:'Keine Verbindung zum Internet. Prüfe das WLAN und versuche es noch einmal.',
-    server:'Der Server antwortet nicht richtig. Versuche es gleich noch einmal.'};
-  let C=null,login=null,server='',dirty=false,timer=null,sending=null,lastSent='',lastSendAt=0,suppress=false,status='',photoRun=null,photoFail=0;
+    server:'Der Server antwortet nicht richtig. Versuche es gleich noch einmal.',
+    plogin:'Benutzername oder PIN vom Partner ist falsch.',pgesperrt:'Zu viele falsche Versuche mit diesem Benutzernamen. Wartet 10 Minuten.',
+    pklasse:'Diese Seite ist für die Klasse vom Partner nicht freigeschaltet.',pselbst:'Das bist du selbst. Gib den Benutzernamen von deinem Partner ein.',
+    pschon:'Dieser Partner ist schon in eurer Gruppe.',pandere:'Dieser Partner ist schon in einer anderen Gruppe. Er muss dort zuerst „Gruppe verlassen“.',
+    pvoll:'Die Gruppe ist voll (höchstens 4 Personen).',pnicht:'Diese Person ist nicht in der Gruppe.',
+    aktion:'Der Server kennt Partnerarbeit noch nicht. Die Lehrkraft muss die neue Code.gs bereitstellen.'};
+  let C=null,login=null,server='',gruppe=null,grpKnown=false,ready=false,early=false,dirty=false,timer=null,sending=null,lastSent='',lastSendAt=0,suppress=false,status='',photoRun=null,photoFail=0;
   const qs=new URLSearchParams(location.search);
   const idOk=s=>/^[A-Za-z0-9_-]{20,}$/.test(s||'');
   const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}};
   const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
   const metaKey=()=>'fs-meta-'+C.app;
   const meta=()=>lsGet(metaKey())||{};
+  const grpU=()=>gruppe&&gruppe.leiter?gruppe.leiter.u:(login?login.u:'');   // wem gehört der gemeinsame Stand?
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const pageLink=()=>location.origin+location.pathname;
   const photoList=()=>C.photos?C.photos().filter(p=>p.ph):[];
   const photosPending=()=>photoList().some(p=>p.ph.src&&!p.ph.fid);
@@ -284,7 +321,7 @@ const Cloud=(function(){
     ov.innerHTML=`<form class="fs-box" autocomplete="on"><h2>👋 Anmelden</h2>
       <div class="fs-sub">${C.titel}</div>
       <label for="fsU">Benutzername <span class="fs-sub">(user name)</span></label>
-      <input id="fsU" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="z. B. 9a-07">
+      <input id="fsU" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="z. B. 8b-07">
       <label for="fsP">PIN <span class="fs-sub">(secret number)</span></label>
       <input id="fsP" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••">
       <button class="go" type="submit">Los geht's ▶</button><div class="fs-msg" id="fsMsg"></div></form>`;
@@ -300,7 +337,7 @@ const Cloud=(function(){
       try{const r=await call(s,{action:'login',u:cu,p:cp,app:C.app,titel:C.titel,link:pageLink()});
         if(!r.ok){say('bad',ERR[r.err]||ERR.server);b.disabled=false;pI.value='';pI.focus();return;}
         login={u:cu,p:cp,s,name:r.name||'',voll:r.voll||r.name||'',klasse:r.klasse||''};lsSet(LOGIN_KEY,login);
-        ov.remove();applyServer(r.data);C.onLogin(login);
+        ov.remove();setGroup(r.gruppe);applyServer(r.data);C.onLogin(login);
       }catch(err){say('bad',ERR.netz);b.disabled=false;}
     };
   }
@@ -309,26 +346,29 @@ const Cloud=(function(){
   function applyServer(d){
     const m=meta();
     let localT=m.t||0;
-    if(m.owner&&m.owner!==login.u){suppress=true;C.setState(null);suppress=false;localT=0;}  // Stand eines anderen Kindes vom Gerät entfernen
+    if((m.owner&&m.owner!==login.u)||(m.owner&&(m.grp||m.owner)!==grpU())){suppress=true;C.setState(null);suppress=false;localT=0;}  // Stand eines anderen Kindes / einer anderen Gruppe vom Gerät entfernen
     const serverT=(d&&d.state)?(d.t||0):-1;
     if(serverT>localT||(serverT>=0&&serverT===localT&&!hasLocal())){
       suppress=true;C.setState(d.state);suppress=false;
-      lsSet(metaKey(),{owner:login.u,t:serverT});lastSent=JSON.stringify(C.getState());dirty=false;
+      lsSet(metaKey(),{owner:login.u,grp:grpU(),t:serverT});lastSent=JSON.stringify(C.getState());dirty=false;
     }else if(serverT>=0&&serverT===localT){
-      lsSet(metaKey(),{owner:login.u,t:localT});lastSent=JSON.stringify(C.getState());dirty=false;   // schon gleich
+      lsSet(metaKey(),{owner:login.u,grp:grpU(),t:localT});lastSent=JSON.stringify(C.getState());dirty=false;   // schon gleich
+      if(early){lastSent='';lsSet(metaKey(),{owner:login.u,grp:grpU(),t:Date.now()});dirty=true;send();}   // Änderungen vor dem Laden (z. B. offline)
     }else{
-      lsSet(metaKey(),{owner:login.u,t:localT});
+      lsSet(metaKey(),{owner:login.u,grp:grpU(),t:localT});
       if(localT>0||(!m.owner&&hasLocal())){dirty=true;send();}
     }
-    idle();syncPhotos();
+    ready=true;early=false;idle();syncPhotos();
+    setTimeout(changed,0);   // Änderungen seit dem Öffnen (z. B. Name) jetzt melden
   }
   const hasLocal=()=>C.hasProgress?!!C.hasProgress():true;
 
   function changed(){
     if(suppress||!login)return;
+    if(!ready){early=true;return;}   // erst nach dem Abgleich mit dem Server – sonst überschreibt ein altes iPad neuere Arbeit
     syncPhotos();
     const js=JSON.stringify(C.getState());if(js===lastSent)return;
-    lsSet(metaKey(),{owner:login.u,t:Date.now()});dirty=true;
+    lsSet(metaKey(),{owner:login.u,grp:grpKnown?grpU():(meta().grp||login.u),t:Date.now()});dirty=true;   // Gruppe erst nach dem Laden sicher bekannt
     if(status!=='off')setStatus('busy');schedule();
   }
   function schedule(){if(timer)return;const wait=Math.max(3000,8000-(Date.now()-lastSendAt));timer=setTimeout(()=>{timer=null;send();},wait);}
@@ -339,7 +379,7 @@ const Cloud=(function(){
     if(js===lastSent){dirty=false;idle();return Promise.resolve(true);}
     setStatus('busy');
     sending=call(login.s,Object.assign(base(),{action:'save',t:meta().t||Date.now(),state:st,sum:C.getSummary()}),keep)
-      .then(r=>{if(r.ok){lastSent=js;dirty=JSON.stringify(C.getState())!==js;idle();return !dirty;}
+      .then(r=>{if(r.ok){if('gruppe' in r&&JSON.stringify(r.gruppe)!==JSON.stringify(gruppe)){setGroup(r.gruppe);}lastSent=js;dirty=JSON.stringify(C.getState())!==js;idle();return !dirty;}
         if(r.err==='login'||r.err==='klasse'||r.err==='gesperrt'){forceLogout(ERR[r.err]);return false;}
         setStatus('off');return false;})
       .catch(()=>{setStatus('off');return false;})
@@ -373,12 +413,78 @@ const Cloud=(function(){
     return photoRun;
   }
 
+  /* ---- Partnerarbeit ---- */
+  let grpEl=null;
+  function setGroup(g){gruppe=g||null;grpKnown=true;if(grpEl)renderGroup(grpEl);if(C.onGroup){const sp=suppress;suppress=true;try{C.onGroup(gruppe,login);}finally{suppress=sp;}}}   // ohne „geändert“ (sonst würde der alte Stand hochgeladen)
+  function others(){if(!gruppe||!login)return [];return [gruppe.leiter].concat(gruppe.partner).filter(m=>m.u!==login.u);}
+  function renderGroup(el){
+    grpEl=el;if(!el)return;
+    if(!login){el.innerHTML='';return;}
+    const me=login.u,mem=gruppe?[gruppe.leiter].concat(gruppe.partner):[{u:me,name:login.voll||me}];
+    el.innerHTML=`<div class="grp"><div class="grp-h">👥 Wer arbeitet zusammen? <span class="fs-sub">(group)</span></div>
+      <ul class="grp-l">${mem.map(m=>`<li><span>👤 <b>${esc(m.name)}</b> <span class="fs-sub">${esc(m.u)}</span>${m.u===me?' <span class="grp-du">du</span>':''}</span>
+        ${gruppe&&m.u!==gruppe.leiter.u?`<button class="grp-x" data-u="${esc(m.u)}">${m.u===me?'🚪 Gruppe verlassen':'✖ entfernen'}</button>`:''}</li>`).join('')}</ul>
+      ${mem.length<4?'<button class="btn sec grp-add" type="button">➕ Partner hinzufügen</button>':''}
+      <p class="grp-tip">Dein Partner gibt hier <b>seinen eigenen</b> Benutzernamen und seine PIN ein. Dann wird eure Arbeit für <b>alle in der Gruppe</b> gespeichert.
+      Arbeitet zusammen an <b>einem</b> iPad. <span class="en">(your partner logs in here – the work is saved for everybody)</span></p></div>`;
+    const add=el.querySelector('.grp-add');if(add)add.onclick=()=>addDialog();
+    el.querySelectorAll('.grp-x').forEach(b=>{let arm=false;b.onclick=async()=>{
+      const self=b.dataset.u===me;
+      if(!arm){arm=true;b.classList.add('arm');b.textContent=self?'⚠️ Wirklich verlassen? Du behältst eine Kopie. Nochmal tippen!':'⚠️ Wirklich entfernen? Nochmal tippen!';setTimeout(()=>{arm=false;renderGroup(el);},5000);return;}
+      b.disabled=true;b.textContent='⏳ …';
+      try{await send();const r=await call(login.s,Object.assign(base(),{action:'partnerWeg',pu:b.dataset.u}));
+        if(!r.ok){alertBox(ERR[r.err]||ERR.server);if(r.gruppe!==undefined)setGroup(r.gruppe);renderGroup(el);return;}
+        if(self){lsSet(metaKey(),null);lastSent='';suppress=true;C.setState(null);suppress=false;location.reload();return;}
+        setGroup(r.gruppe);dirty=true;lastSent='';send();
+      }catch(e){alertBox(ERR.netz);renderGroup(el);}};});
+  }
+  function alertBox(t){const ov=document.createElement('div');ov.className='fs-ov';ov.innerHTML=`<div class="fs-box"><p style="font-size:18px">${esc(t)}</p><button class="go" type="button">OK</button></div>`;ov.querySelector('.go').onclick=()=>ov.remove();document.body.appendChild(ov);}
+  function addDialog(){
+    const ov=document.createElement('div');ov.className='fs-ov';
+    ov.innerHTML=`<form class="fs-box" autocomplete="off"><h2>👥 Partner hinzufügen</h2>
+      <div class="fs-sub">Gib das iPad deinem Partner. Er tippt <b>seine eigenen</b> Daten ein. <span class="en">(partner types his/her own login)</span></div>
+      <label for="gpU">Benutzername vom Partner <span class="fs-sub">(user name)</span></label>
+      <input id="gpU" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="z. B. 8b-12">
+      <label for="gpP">PIN vom Partner <span class="fs-sub">(secret number)</span></label>
+      <input id="gpP" type="password" inputmode="numeric" autocomplete="new-password" placeholder="••••">
+      <button class="go" type="submit">Verbinden 🤝</button><button class="go grp-cancel" type="button">Abbrechen</button><div class="fs-msg" id="gpMsg"></div></form>`;
+    document.body.appendChild(ov);
+    const uI=ov.querySelector('#gpU'),pI=ov.querySelector('#gpP'),m=ov.querySelector('#gpMsg'),b=ov.querySelector('.go');
+    const say=(cls,t)=>{m.className='fs-msg '+cls;m.innerHTML=t;};
+    ov.querySelector('.grp-cancel').onclick=()=>ov.remove();
+    setTimeout(()=>uI.focus(),50);
+    let force=false;
+    ov.querySelector('form').onsubmit=async e=>{e.preventDefault();
+      const pu=uI.value.trim().toLowerCase(),pp=pI.value.trim();
+      if(!pu||!pp){say('bad','Bitte Benutzername und PIN eingeben.');return;}
+      b.disabled=true;say('info','⏳ Einen Moment …');
+      try{await send();
+        const r=await call(login.s,Object.assign(base(),{action:'partnerAdd',pu,pp,force}));
+        if(!r.ok){
+          if(r.err==='peigen'){force=true;b.disabled=false;b.textContent='Trotzdem verbinden 🤝';
+            say('bad',`⚠️ ${esc(r.name||pu)} hat an dieser Seite schon <b>allein</b> gearbeitet. Wenn ihr verbindet, arbeitet ${esc(r.name||pu)} ab jetzt mit <b>eurer</b> Arbeit weiter. (Die eigene Arbeit wird für die Lehrkraft gesichert.)`);return;}
+          if(r.gruppe!==undefined)setGroup(r.gruppe);
+          say('bad',ERR[r.err]||ERR.server);b.disabled=false;pI.value='';return;}
+        ov.remove();setGroup(r.gruppe);dirty=true;lastSent='';send();
+      }catch(err){say('bad',ERR.netz);b.disabled=false;}
+    };
+  }
+
+  let loading=false;
+  function loadNow(){   // ersten Stand vom Server holen; ohne Internet: später nochmal versuchen
+    if(!login||ready||loading)return;loading=true;
+    call(login.s,Object.assign(base(),{action:'load'}))
+      .then(r=>{if(r.ok){setGroup(r.gruppe);applyServer(r.data);}else if(r.err==='login'||r.err==='klasse'||r.err==='gesperrt')forceLogout(ERR[r.err]);else{setStatus('off');setTimeout(loadNow,15000);}})
+      .catch(()=>{setStatus('off');setTimeout(loadNow,15000);})
+      .finally(()=>{loading=false;});
+  }
+
   function flush(){if(dirty&&login){clearTimeout(timer);timer=null;send(true);}}
-  function forceLogout(msg){const s=login.s,u=login.u;login=null;lsSet(LOGIN_KEY,null);setStatus('');showLogin(s,u,msg);}
+  function forceLogout(msg){const s=login.s,u=login.u;login=null;gruppe=null;grpKnown=false;ready=false;lsSet(LOGIN_KEY,null);setStatus('');showLogin(s,u,msg);}
 
   return {
     init(opts){C=opts;
-      window.addEventListener('online',()=>{if(dirty)send();syncPhotos();});
+      window.addEventListener('online',()=>{if(login&&!ready){loadNow();return;}if(dirty)send();syncPhotos();});
       document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush();});
       window.addEventListener('pagehide',flush);
       setInterval(()=>{if(dirty&&!sending)send();if(photosPending())syncPhotos();},30000);
@@ -390,9 +496,7 @@ const Cloud=(function(){
       if(login&&(login.s!==s||(uP&&uP!==login.u))){login=null;lsSet(LOGIN_KEY,null);}
       if(!login){showLogin(s,uP);return;}
       C.onLogin(login);setStatus('busy');
-      call(s,Object.assign(base(),{action:'load'}))
-        .then(r=>{if(r.ok)applyServer(r.data);else if(r.err==='login'||r.err==='klasse'||r.err==='gesperrt')forceLogout(ERR[r.err]);else setStatus('off');})
-        .catch(()=>{setStatus('off');});
+      loadNow();
     },
     changed,
     paint:()=>setStatus(status),
@@ -400,11 +504,14 @@ const Cloud=(function(){
     active:()=>!!login,
     configured:()=>!!server,
     user:()=>login,
+    gruppe:()=>gruppe,
+    partnerNamen:()=>others().map(m=>m.name),
+    renderGroup,
     /* Abmelden. Liefert false, wenn noch nicht alles gespeichert ist (dann force=true zum Erzwingen). */
     async logout(force){
       if(!login)return true;
       if(dirty||photosPending()){await send();await syncPhotos();if((dirty||photosPending())&&!force)return false;}
-      const s=login.s;login=null;lsSet(LOGIN_KEY,null);lsSet(metaKey(),null);lastSent='';dirty=false;setStatus('');
+      const s=login.s;login=null;gruppe=null;grpKnown=false;ready=false;lsSet(LOGIN_KEY,null);lsSet(metaKey(),null);lastSent='';dirty=false;setStatus('');
       suppress=true;C.setState(null);suppress=false;showLogin(s,'');return true;
     }
   };
@@ -430,7 +537,7 @@ let TRAIN = {saved:false, erased:false};
 const QREG = {};          // id -> {session, kind, api}
 const ORDER = [];         // question ids in order
 
-function freshState(){ return {v:1, name:'', solved:{}, wrong:{}, revealed:{}, photos:{}, created:new Date().toISOString(), updated:null}; }
+function freshState(){ return {v:1, name:'', solved:{}, wrong:{}, revealed:{}, photos:{}, tests:{}, tans:{}, qt:{}, away:{n:0,sec:0,log:[]}, created:new Date().toISOString(), updated:null}; }
 function photosMeta(keepPending){ const o={}; for(const k in (STATE.photos||{})){ const p=STATE.photos[k]; o[k] = (keepPending && p.src && !p.fid) ? {src:p.src,w:p.w,h:p.h,t:p.t} : {fid:p.fid,w:p.w,h:p.h,t:p.t}; } return o; }
 
 /* ---------- small helpers ---------- */
@@ -570,6 +677,8 @@ function mergeState(st){
   for(const k in st.revealed){ if(st.revealed[k] && !STATE.solved[k]) STATE.revealed[k]=true; }
   if(st.tampered) STATE.tampered = true;
   for(const k in (st.photos||{})){ if(!STATE.photos[k]) STATE.photos[k]=st.photos[k]; }
+  ['tests','tans','qt'].forEach(f=>{ STATE[f]=STATE[f]||{}; for(const k in (st[f]||{})){ if(!STATE[f][k]) STATE[f][k]=st[f][k]; } });
+  if(st.away){ const A=STATE.away=STATE.away||{n:0,sec:0,log:[]}; if((st.away.n||0)>(A.n||0)){ A.n=st.away.n; A.sec=st.away.sec||0; A.log=(st.away.log||[]).slice(-20); } }
   if(st.created && (!STATE.created || st.created < STATE.created)) STATE.created = st.created;
 }
 function applyLoaded(st, how){
@@ -686,13 +795,260 @@ function loadDialog(){
 /* =====================================================================
    QUESTION WIDGETS
    ===================================================================== */
+/* =====================================================================
+   TIPPS bei falschen Antworten (eigene „hint“-Texte der Aufgaben haben Vorrang)
+   ===================================================================== */
+const HINTS = {
+  's1-g1': 'Ørsted hat es entdeckt: Was erzeugt ein Magnetfeld?',
+  's1-g2': 'Lies noch einmal in 1.2: Der Sensor sitzt an einer ganz bestimmten Stelle der Sonde.',
+  's1-m1': 'Auch ohne Spule gibt es ein Magnetfeld um uns herum. Woher kommt es?',
+  's1-m4': 'Die Hall-Sonde misst nur in <b>eine</b> Richtung. Was passiert, wenn sie kippt?',
+  's1-m5': 'Was macht Messwerte genauer – und was macht sie ungenau? Es gibt mehrere richtige Antworten.',
+  's1-m6': 'Ein warmer Draht hat einen größeren Widerstand. Was macht das mit der Stromstärke?',
+  's1-a1': 'Suche auf der x-Achse I = 2 A. Gehe nach oben bis zum Messpunkt. Lies dann links B ab.',
+  's1-a3': 'B ~ I: Wenn I größer wird, wird B … Wenn I halb so groß ist, ist B …',
+  's1-a4': 'Beim Umpolen dreht sich die Richtung des Feldes um. Der Betrag bleibt gleich.',
+  's1-a5': 'Proportional: Doppelt so viel I → doppelt so viel B. Wie sieht so ein Graph aus?',
+  's1-b1': 'Schau auf den Graphen von Gruppe B: Wo ist die Kurve am höchsten?',
+  's1-b3': 'Kleine Schritte braucht man dort, wo sich B <b>schnell</b> ändert. Wo ist der Graph steil?',
+  's1-c1': 'Schau auf den Graphen von Gruppe C: innen fast waagerecht, außen unter der x-Achse.',
+  's1-c2': 'Wie ist das Feld <b>in</b> einer Spule? Lies noch einmal bei Gruppe C.',
+  's1-f1': 'Größen im Zähler (oben): Wird der Zähler größer, wird der Bruch größer.',
+  's1-f2': 'L steht im Nenner (unten). Großer Nenner → kleiner Bruch.',
+  's1-f3': 'Zähler mal 2 und Nenner mal 2 – was passiert mit dem Bruch?',
+  's1-an1': 'Ein Elektromagnet ist nur magnetisch, solange …',
+  's1-an2': 'Schau in die Formel B = μ₀·N·I / L: Was oben steht, macht B größer. Was unten steht, macht B kleiner.',
+  's1-v1': 'Schau in die Wörter-Tabelle 1.1.',
+  's1-v2': 'Schau in die Wörter-Tabelle 1.1.',
+  's1-v3': 'Lies die Sätze ganz. Schau in die Wörter-Tabelle 1.1.',
+  's2-b1': 'Lies von links nach rechts: nach oben = steigend, nach unten = fallend, waagerecht = konstant.',
+  's2-b2': 'Bei t = 1 s ist der Graph genau in der Mitte zwischen 1 mT und 5 mT.',
+  's2-b3': 'Zwischen 5 s und 7 s fällt B von 5 mT auf 1 mT. Was ist in der Mitte?',
+  's2-b4': 'Schau auf Graph 1: Wo ist der höchste Punkt? Wo ist der Graph waagerecht?',
+  's2-b5': 'Gehe Stück für Stück von links nach rechts: waagerecht – nach unten – waagerecht?',
+  's2-s1': 'Steil = große Änderung in kurzer Zeit. Rechne für jedes Intervall: Änderung : Zeit.',
+  's2-s4': 'Waagerecht = konstant = Änderungsrate null. Vergleiche die Steigungen.',
+  's2-k1': 'Der Hochpunkt ist der höchste Punkt der Kurve. Lies den Zeitpunkt auf der t-Achse ab.',
+  's2-k2': 'Der Tiefpunkt ist der niedrigste Punkt der Kurve. Lies den Zeitpunkt auf der t-Achse ab.',
+  's2-k3': 'Hochpunkt und Tiefpunkt: dort ist die Kurve kurz waagerecht. Am steilsten ist sie genau dazwischen.',
+  's2-p1': 'Proportional = Gerade <b>durch den Ursprung</b> (0 | 0).',
+  's2-p2': 'Was zeigt das Teslameter schon ohne Strom an? (Sitzung 1, Nullabgleich)',
+  's2-v1': 'Schau in die Wörter-Tabelle 2.1.',
+  's2-v2': 'Schau in die Wörter-Tabelle 2.1.',
+  's2-a1': 'Eine Spannung gibt es nur, wenn sich B ändert: Wo steigt oder fällt Graph 1? (Mehrere Antworten)',
+  's2-a2': 'Größte Spannung = schnellste Änderung = steilster Teil des Graphen.',
+  's3-i1': 'Induktion braucht Magnet und Spule. Solarzelle und Batterie funktionieren anders. (Mehrere Antworten)',
+  's3-h1': 'Lies den ersten Absatz: Was passiert mit der Kompassnadel neben dem Draht mit Strom?',
+  's3-h2': 'Faraday wollte das Umgekehrte von Ørsteds Entdeckung zeigen.',
+  's3-h3': 'Lies den Absatz „29. August 1831“: Wie lange bewegt sich die Nadel?',
+  's3-h4': 'Wann gab es Strom: bei einem konstanten oder bei einem sich ändernden Magnetfeld?',
+  's3-hv': 'Schau in die Wörter-Tabelle zum Text.',
+  's3-b1': 'Probiere es in der Simulation: Lass den Magneten in der Spule liegen.',
+  's3-b2': 'Andere Bewegungsrichtung → anderes Vorzeichen.',
+  's3-b3': 'Teste in der Simulation: Geschwindigkeit, Windungen … (Mehrere Antworten)',
+  's3-b4': 'Es kommt auf die <b>relative</b> Bewegung an: Wer sich bewegt, ist egal.',
+  's3-b5': 'Drehe in der Simulation den Magneten um (N ↔ S) und beobachte den Zeiger.',
+  's3-b6': 'Teste in der Simulation „langsam durch die Spule“: Was macht der Zeiger beim Hinein- und beim Herauskommen?',
+  's3-d1': 'Wechsel-spannung: Was „wechselt“ immer wieder?',
+  's3-d2': 'Bei einer Batterie bleiben Plus und Minus immer an derselben Stelle.',
+  's3-d3': 'U = 0, wenn sich die Anzahl der Feldlinien gerade <b>nicht</b> ändert (Hoch- oder Tiefpunkt im Graphen).',
+  's3-m1': 'Konstanter Strom → konstantes Magnetfeld. Induziert ein konstantes Feld eine Spannung?',
+  's3-m2': 'Spannung nur, wenn sich das Magnetfeld <b>ändert</b>. Wann ändert sich der Strom im Elektromagneten? (Mehrere Antworten)',
+  's3-m3': 'Einschalten: Feld wird stärker. Ausschalten: Feld wird schwächer. Konstanter Strom: Feld bleibt gleich.',
+  's3-f1': 'Zähle nur die Symbole <b>innerhalb</b> des roten Rahmens.',
+  's3-f2': 'Zähle nur die Symbole innerhalb des roten Rahmens. Ist das Feld selbst stärker geworden?',
+  's3-f3': 'Bewegung allein reicht nicht. Ändert sich die <b>Anzahl</b> der Feldlinien in der Spule?',
+  's3-f4': 'Feld nimmt zu: vorher <b>wenige</b> Feldlinien in der Spule, nachher <b>viele</b>.',
+  's3-f5': 'Ohne Bewegung: Die Spule bleibt am gleichen Platz. Vorher gibt es noch kein Feld.',
+  's3-f6': 'Vergleiche die Zahlen von Sekunde zu Sekunde: Wo ändert sich die Anzahl? (Mehrere Antworten)',
+  's3-g1': 'Wo ändert sich I im Graphen E? Wo ist der Graph waagerecht? (Mehrere Antworten)',
+  's3-g2': 'Steigend oder fallend → Spannung. Waagerecht → keine Spannung. (Mehrere Antworten)',
+  's3-g3': 'Rechne die Änderungsrate: Änderung von B : Zeit. Wo ist sie am größten?',
+  's3-g4': 'Fallend → umgekehrtes Vorzeichen. Konstant → null. Steigend wie am Anfang → gleiches Vorzeichen.',
+  's3-g5': 'Steigend → U positiv, konstant → U = 0, fallend → U negativ. Der U-Graph sieht ganz anders aus als der B-Graph!',
+  's3-g6': 'Gesucht ist die <b>falsche</b> Aussage. Induziert ein starkes, aber konstantes Feld eine Spannung?',
+  's3-v1a': 'Was ändert die Richtung des Zeigers? Denke an hinein/heraus und an N/S. (Mehrere Antworten)',
+  's3-v1b': 'Was macht den Ausschlag größer? Die Richtung ändert nur das Vorzeichen. (Mehrere Antworten)',
+  's3-v2a': 'Bei jeder halben Drehung ist der andere Pol über dem Kern. Was passiert mit dem Vorzeichen?',
+  's3-v2b': 'Große Spannung = schnelle und große Änderung des Feldes. (Mehrere Antworten)',
+  's3-A1a': 'Bei jeder Aktion fragen: Ändert sich das Magnetfeld in der rechten Spule? (Mehrere Antworten)',
+  's3-A1a2': 'Es ist immer derselbe Grund – denke an Merksatz 3.',
+  's3-A1b': 'Wechselstrom ändert ständig Betrag und Richtung. Was macht das mit dem Magnetfeld?',
+  's3-A2': 'Induktion braucht nur ein sich änderndes Feld. Was macht Eisen mit dem Magnetfeld?',
+  's3-A3a': 'Zähle die Feldlinien in der Spule: Kommt die Spule ins Feld, ist sie ganz drin, oder geht sie hinaus?',
+  's3-A3b': 'Eintreten: Spannung. Ganz im Feld: keine Spannung. Austreten: Spannung mit anderem Vorzeichen.',
+  's3-A3c': 'Schneller → schnellere Änderung. Was passiert mit der Spannung und mit den Zeiten?',
+  's3-A3d': 'Es kommt nur auf die Änderung der Anzahl der Feldlinien in der Spule an – wann ändert sie sich?',
+  's3-B1a': 'Wann ändert sich das Magnetfeld der ersten Spule? Nur beim Ein- und Ausschalten.',
+  's3-B1b': 'Eisen verstärkt das Magnetfeld. Was bedeutet das für die Änderung?',
+  's3-B1c': 'Ohne Batterie: Wie kann sich das Feld in der Spule trotzdem ändern?',
+  's3-v1': 'Schau in die Wörter-Tabelle 3.2.',
+  's3-v2': 'Schau in die Wörter-Tabelle 3.2.',
+  's3-t1': 'Merksatz 3: Wann wird eine Spannung induziert?',
+  's3-t2': 'Relative Bewegung: Ändert sich das Feld in der Spule?',
+  's3-t3': 'Im Generator dreht sich etwas. Was passiert dabei mit dem Feld in der Spule?',
+  's3-t4': 'Wechselstrom → das Magnetfeld ändert sich ständig. Was passiert dann in der zweiten Spule?',
+  's3-t5': 'Keine Spannung, wenn sich B <b>nicht ändert</b>. Welcher Graph ist waagerecht?'
+};
+
+/* =====================================================================
+   ZEIT pro Aufgabe · SEITE VERLASSEN · TIPPS
+   ===================================================================== */
+const plainT = s => { const d = document.createElement('div'); d.innerHTML = String(s == null ? '' : s); return (d.textContent || '').replace(/\s+/g, ' ').trim(); };
+const mmss = s => { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const cut = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+
+/* geschätzte Zeit (Sekunden) pro Aufgabe */
+function estOf(def){
+  if(def.est) return def.est;
+  switch(def.t){
+    case 'mc': return (Array.isArray(def.a) || def.graphs) ? 60 : 40;
+    case 'num': return 90;
+    case 'cloze': { const g = (def.lines || []).join(' ').split('{').length - 1; return Math.max(40, 20 * g); }
+    case 'match': return Math.max(40, 15 * (def.pairs || []).length);
+    case 'form': return 120;
+  }
+  return 60;
+}
+
+/* Zahl-Tipp: typische Fehler (Einheit mA/A, Komma, Vorzeichen, doppelt/halb) */
+function numTip(v, a){
+  if(!isFinite(v) || !isFinite(a) || a === 0 || v === 0) return '';
+  const r = v / a, near = x => Math.abs(r / x - 1) < 0.04;
+  if(near(-1)) return 'Prüfe das <b>Vorzeichen</b>.';
+  if(near(1000) || near(0.001)) return `Dein Ergebnis ist <b>1000-mal zu ${r > 1 ? 'groß' : 'klein'}</b>. Prüfe die Einheit (Faktor 1000): 1 T = 1000 mT, 1 A = 1000 mA.`;
+  for(const k of [10, 100]) if(near(k) || near(1 / k)) return `Dein Ergebnis ist <b>${k}-mal zu ${r > 1 ? 'groß' : 'klein'}</b>. Prüfe das <b>Komma</b>.`;
+  if(near(2)) return 'Dein Ergebnis ist <b>doppelt</b> so groß wie richtig.';
+  if(near(0.5)) return 'Dein Ergebnis ist nur <b>halb</b> so groß wie richtig.';
+  if(Math.abs(r - 1) < 0.15) return 'Du bist <b>nah dran</b>. Rechne genauer (Runden erst am Ende).';
+  return '';
+}
+
+/* ---------- Seite verlassen (anderer Tab / andere App) ---------- */
+let AWAY_IGNORE = false, AWAY_T0 = 0, AWAY_HID = false, AWAY_WHERE = '';
+function awayWhere(){
+  const t = TESTS.find(x => testStarted(x) && !testDone(x));
+  if(t) return {key: t.id, test: t};
+  return {key: (document.querySelector('#tabs button.active') || {}).dataset?.p || ''};
+}
+function awayStart(hidden){
+  if(AWAY_IGNORE) return;
+  if(hidden) AWAY_HID = true;
+  if(AWAY_T0) return;
+  AWAY_T0 = Date.now(); AWAY_WHERE = awayWhere().key;
+  QT.pause();
+}
+function awayEnd(){
+  if(!AWAY_T0) return;
+  if(document.visibilityState === 'hidden' || !document.hasFocus()) return;
+  const sec = (Date.now() - AWAY_T0) / 1000, hid = AWAY_HID;
+  AWAY_T0 = 0; AWAY_HID = false;
+  if(AWAY_IGNORE){ AWAY_IGNORE = false; return; }
+  if(sec < (hid ? 1 : 3)) return;
+  const A = STATE.away = STATE.away || {n: 0, sec: 0, log: []};
+  A.n++; A.sec = Math.round(A.sec + sec);
+  A.log.push([new Date().toISOString().slice(0, 16), Math.round(sec), AWAY_WHERE]); if(A.log.length > 20) A.log = A.log.slice(-20);
+  const t = TESTS.find(x => x.id === AWAY_WHERE);
+  if(t && STATE.tests[t.id]){ const o = STATE.tests[t.id]; o.away = (o.away || 0) + 1; o.awaySec = Math.round((o.awaySec || 0) + sec); if(TEST_REFRESH[t.id]) TEST_REFRESH[t.id](); }
+  changed(false);
+  toast(`👀 Du hast die Seite ${t ? '<b>während des Tests</b> ' : ''}verlassen (${mmss(sec)} min). Das wird gespeichert.<br><span class="en">Please stay on this page – no other apps.</span>`, 5000);
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') awayStart(true); else setTimeout(awayEnd, 300); });
+window.addEventListener('blur', () => awayStart(false));
+window.addEventListener('focus', () => setTimeout(awayEnd, 300));
+document.addEventListener('click', e => { if(e.target.closest && e.target.closest('input[type=file],label.fbtn,.hfoto label')) { AWAY_IGNORE = true; setTimeout(() => { if(!AWAY_T0) AWAY_IGNORE = false; }, 60000); } }, true);
+
+/* ---------- Uhr pro Aufgabe ---------- */
+const QT = (() => {
+  const acc = {}, noted = {};
+  let cur = null, t0 = 0, last = Date.now();
+  const running = () => cur && t0;
+  function sec(id){ return (acc[id] || 0) + (id === cur && t0 ? (Date.now() - t0) / 1000 : 0); }
+  function pause(){ if(running()){ acc[cur] = sec(cur); t0 = 0; } }
+  function finished(id){ return STATE.solved[id] || STATE.revealed[id] || (STATE.tans && STATE.tans[id]); }
+  function touch(id){
+    last = Date.now();
+    if(finished(id) || (STATE.qt && STATE.qt[id])) return;
+    if(document.visibilityState === 'hidden') return;
+    if(cur !== id){ pause(); cur = id; }
+    if(!t0) t0 = Date.now();
+    paint(id);
+  }
+  function ratio(id){ const r = QREG[id]; return r ? sec(id) / r.est : 0; }
+  function paint(id){
+    const r = QREG[id]; if(!r || !r.el) return;
+    const p = r.el.querySelector('.qclock'); if(!p) return;
+    const s = sec(id); if(s <= 0 && !STATE.qt?.[id]) { p.style.display = 'none'; return; }
+    const done = STATE.qt && STATE.qt[id], ss = done ? done[0] : s, q = ss / r.est;
+    p.style.display = ''; p.textContent = `⏱ ${mmss(ss)} / ca. ${mmss(r.est)}`;
+    p.classList.toggle('warn', q > 1.2); p.classList.toggle('over', q > 1.5); p.classList.toggle('fin', !!done);
+    if(!done && q > 1.5 && !noted[id]){
+      noted[id] = true;
+      const n = r.el.querySelector('.timenote'); if(n){ n.innerHTML = r.once
+        ? '⏰ Du brauchst schon <b>sehr lange</b> für diese Frage. Entscheide dich und tippe auf „Antwort speichern“. <span class="en">(decide and save)</span>'
+        : '⏰ Diese Aufgabe dauert schon <b>lange</b>. Lies den Text oder den Merksatz oben noch einmal. Frag auch deinen Partner oder deine Lehrkraft. <span class="en">(re-read the text, ask for help)</span>'; n.classList.add('show'); }
+    }
+  }
+  /* Aufgabe fertig → Zeit speichern: qt[id] = [Sekunden, 0 ok | 1 > 120 % | 2 > 150 %] */
+  function stop(id){
+    if(STATE.qt && STATE.qt[id]) return;
+    const s0 = sec(id), s = s0 > 0 ? Math.max(1, Math.round(s0)) : 0; if(cur === id){ t0 = 0; cur = null; }
+    delete acc[id];
+    if(s <= 0) return;
+    const q = s / (QREG[id]?.est || 60);
+    STATE.qt = STATE.qt || {}; STATE.qt[id] = [s, q > 1.5 ? 2 : q > 1.2 ? 1 : 0];
+    const n = QREG[id]?.el?.querySelector('.timenote'); if(n) n.classList.remove('show');
+    paint(id);
+  }
+  setInterval(() => {
+    if(!running()) return;
+    if(Date.now() - last > 120000){ pause(); return; }       // 2 Minuten nichts getan → Pause
+    paint(cur);
+  }, 1000);
+  ['pointerdown', 'keydown', 'scroll'].forEach(ev => window.addEventListener(ev, () => { last = Date.now(); if(cur && !t0 && document.visibilityState !== 'hidden' && ev !== 'scroll') t0 = Date.now(); }, {passive: true, capture: true}));
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') pause(); });
+  return {touch, stop, pause, sec, paint, ratio};
+})();
+
+/* ---------- Test: Antworten erst am Ende auswerten ---------- */
+function testAnswered(t){ return t.ids.every(i => STATE.solved[i] || STATE.revealed[i] || (STATE.tans && STATE.tans[i])); }
+function testFinalize(tid){
+  const t = TESTS.find(x => x.id === tid); if(!t || testDone(t) || !testAnswered(t)) return false;
+  let got = 0;
+  t.ids.forEach(i => {
+    if(STATE.solved[i] || STATE.revealed[i]) return;
+    const a = STATE.tans[i];
+    if(a.ok){ STATE.solved[i] = true; got++; } else { STATE.revealed[i] = true; STATE.wrong[i] = (STATE.wrong[i] || 0) + 1; }
+  });
+  const o = STATE.tests[tid] = STATE.tests[tid] || {};
+  o.end = new Date().toISOString();
+  o.sec = t.ids.reduce((s, i) => s + ((STATE.qt && STATE.qt[i]) ? STATE.qt[i][0] : 0), 0);
+  if(got) flyStar($('#t_' + tid + ' .tresult'));
+  changed(got > 0);
+  refreshAllQuestions();
+  setTimeout(() => { const r = $('#t_' + tid + ' .tresult'); if(r) r.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 120);
+  return true;
+}
+function testOverview(t){
+  return `<div class="trev"><h4>📋 Deine Antworten <span class="en">(your answers)</span></h4>` + t.ids.map((i, k) => {
+    const r = QREG[i]; if(!r) return '';
+    const ok = !!STATE.solved[i], a = STATE.tans && STATE.tans[i], qt = STATE.qt && STATE.qt[i];
+    const your = a ? (a.a || '–') : '–', right = r.api.rightText ? r.api.rightText() : '';
+    const tip = ok ? '' : ((a && r.api.tip && r.api.tip(a.r)) || '') + ' ' + (r.def.hint || '');
+    return `<div class="rv ${ok ? 'ok' : 'bad'}"><div class="rvh"><b>${ok ? '✅' : '❌'} Testfrage ${k + 1}</b> <span>${escH(cut(plainT(r.def.q), 110))}</span>
+      ${qt ? `<span class="rvt ${qt[1] === 2 ? 'over' : qt[1] === 1 ? 'warn' : ''}">⏱ ${mmss(qt[0])} / ca. ${mmss(r.est)}</span>` : ''}</div>
+      <div>Deine Antwort: <b>${escH(your)}</b>${ok ? '' : ` &nbsp;·&nbsp; Richtig: <b>${escH(right)}</b>`}</div>
+      ${ok ? '' : `<div class="tip">💡 ${tip.trim()}</div>`}</div>`;
+  }).join('') + `</div>`;
+}
+
 let QNUM = {};
 function qShell(def, sess){
   QNUM[sess]=(QNUM[sess]||0)+1;
   const el = h('div',{class:'q', id:'q_'+def.id});
-  el.innerHTML = `<div class="qhead"><span class="qnum">${def.label||('Aufgabe '+QNUM[sess])}</span><span class="wrongtag"></span><span class="qstar" title="Stern">⭐</span></div>
+  el.innerHTML = `<div class="qhead"><span class="qnum">${def.label||('Aufgabe '+QNUM[sess])}</span><span class="wrongtag"></span><span class="qclock" style="display:none"></span><span class="qstar" title="Stern">⭐</span></div>
     <div class="qtext">${def.q}</div><div class="qbody"></div>
-    <div class="qactions"><button class="check">Prüfen</button><span class="feedback"></span><button class="reveal">Lösung zeigen (ohne Stern)</button></div>
+    <div class="timenote"></div><div class="qactions"><button class="check">${def.once?'💾 Antwort speichern':'Prüfen'}</button><span class="feedback"></span><button class="reveal">Lösung zeigen (ohne Stern)</button></div>
     <div class="hint">💡 ${def.hint||''}</div>
     <div class="explain">${def.explain||''}</div>`;
   return el;
@@ -702,27 +1058,47 @@ function setWrongTag(el,id){ const n=STATE.wrong[id]||0; $('.wrongtag',el).textC
 function wireCommon(el, def, api){
   const id=def.id;
   const fb=$('.feedback',el), rv=$('.reveal',el), hint=$('.hint',el), btn=$('.check',el);
+  ['pointerdown','focusin','input','change'].forEach(ev=>el.addEventListener(ev,()=>QT.touch(id)));
   btn.onclick = ()=>{
     if(STATE.solved[id]||STATE.revealed[id]) return;
-    const res = api.check();
+    if(def.once){                                   // TEST: nur speichern – Auswertung erst am Ende
+      if(STATE.tans[id]) return;
+      const r0 = api.check(true); const ok = (r0 && typeof r0==='object') ? r0.ok : r0;
+      if(ok===null || ok===undefined){ fb.className='feedback bad'; fb.textContent='Bitte zuerst antworten.'; return; }
+      const raw = api.raw();
+      STATE.tans[id] = {ok: ok?1:0, a: api.answer(), r: raw};
+      QT.stop(id); api.freeze(); btn.disabled=true;
+      fb.className='feedback saved'; fb.textContent='✓ Antwort gespeichert';
+      changed(false);
+      const tid = TEST_OF[id];
+      if(!testFinalize(tid) && TEST_REFRESH[tid]) setTimeout(TEST_REFRESH[tid], 50);
+      return;
+    }
+    const res0 = api.check(); const res = (res0 && typeof res0==='object') ? res0.ok : res0; let msg = (res0 && typeof res0==='object') ? res0.msg : '';
     if(res===null){ fb.className='feedback bad'; fb.textContent='Bitte zuerst antworten.'; return; }
-    if(res){ fb.className='feedback ok'; fb.textContent = praise(); awardStar(id, $('.qstar',el)); api.lock(true); el.classList.add('solved'); btn.disabled=true; rv.classList.remove('show'); }
+    if(res){ QT.stop(id); fb.className='feedback ok'; fb.textContent = praise(); awardStar(id, $('.qstar',el)); api.lock(true); el.classList.add('solved'); btn.disabled=true; rv.classList.remove('show'); }
     else{
       addWrong(id); setWrongTag(el,id);
-      fb.className='feedback bad'; fb.textContent = 'Leider falsch. Versuche es noch einmal!';
+      if(!msg && api.tip) msg = api.tip(api.raw());
+      fb.className='feedback bad'; fb.innerHTML = msg ? '✗ '+msg : '✗ Leider falsch. Lies den Tipp und versuche es noch einmal!';
       if(def.hint) hint.classList.add('show');
       if((STATE.wrong[id]||0)>=3) rv.classList.add('show');
     }
   };
-  rv.onclick = ()=>{ if(STATE.solved[id]) return; STATE.revealed[id]=true; api.lock(false); el.classList.add('revealed'); btn.disabled=true; rv.classList.remove('show'); fb.className='feedback'; fb.textContent='Lösung angezeigt – kein Stern.'; changed(false); };
+  rv.onclick = ()=>{ if(STATE.solved[id]) return; QT.stop(id); STATE.revealed[id]=true; api.lock(false); el.classList.add('revealed'); btn.disabled=true; rv.classList.remove('show'); fb.className='feedback'; fb.textContent='Lösung angezeigt – kein Stern.'; changed(false); };
   api.refresh = ()=>{
-    el.classList.remove('solved','revealed'); btn.disabled=false; fb.textContent=''; fb.className='feedback'; hint.classList.remove('show'); rv.classList.remove('show');
+    el.classList.remove('solved','revealed','tfail','tsaved'); btn.disabled=false; fb.textContent=''; fb.className='feedback'; hint.classList.remove('show'); rv.classList.remove('show');
     api.reset && api.reset();
-    if(STATE.solved[id]){ api.lock(true); el.classList.add('solved'); btn.disabled=true; fb.className='feedback ok'; fb.textContent='✓ gelöst'; }
-    else if(STATE.revealed[id]){ api.lock(false); el.classList.add('revealed'); btn.disabled=true; fb.textContent='Lösung angezeigt – kein Stern.'; }
+    const ta = STATE.tans && STATE.tans[id];
+    if(STATE.solved[id]){ api.lock(true); el.classList.add('solved'); btn.disabled=true; fb.className='feedback ok'; fb.textContent= def.once ? '✓ richtig' : '✓ gelöst'; }
+    else if(STATE.revealed[id]){ api.lock(false); el.classList.add('revealed'); btn.disabled=true;
+      if(def.once){ el.classList.add('tfail'); fb.className='feedback bad'; fb.innerHTML = '✗ Falsch. Deine Antwort: <b>'+escH(ta ? ta.a : '–')+'</b> – hier die richtige Antwort.'; if(def.hint) hint.classList.add('show'); }
+      else fb.textContent='Lösung angezeigt – kein Stern.'; }
+    else if(def.once && ta){ api.setRaw && api.setRaw(ta.r); api.freeze(); btn.disabled=true; el.classList.add('tsaved'); fb.className='feedback saved'; fb.textContent='✓ Antwort gespeichert'; }
     else if((STATE.wrong[id]||0)>=3) rv.classList.add('show');
-    if(!STATE.solved[id] && !STATE.revealed[id] && (STATE.wrong[id]||0)>0 && def.hint) hint.classList.add('show');
+    if(!def.once && !STATE.solved[id] && !STATE.revealed[id] && (STATE.wrong[id]||0)>0 && def.hint) hint.classList.add('show');
     setWrongTag(el,id);
+    QT.paint(id);
   };
 }
 const PRAISE=['Richtig! ⭐','Super! ⭐','Genau! ⭐','Sehr gut! ⭐','Stark! ⭐','Perfekt! ⭐'];
@@ -745,13 +1121,19 @@ function mcWidget(def, sess){
   body.appendChild(box);
   if(multi) body.appendChild(h('div',{class:'small'},'Mehrere Antworten können richtig sein. <span class="en">(more than one may be correct)</span>'));
   const api={
-    check(){ const sel=$$('input',box).filter(i=>i.checked).map(i=>+i.value); if(!sel.length) return null;
+    check(quiet){ const sel=$$('input',box).filter(i=>i.checked).map(i=>+i.value); if(!sel.length) return null;
       const ok = sel.length===correct.size && sel.every(i=>correct.has(i));
-      if(!ok){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); o.classList.toggle('wrongsel', inp.checked); }); setTimeout(()=>$$('.opt',box).forEach(o=>o.classList.remove('wrongsel')),900); }
+      if(!ok && !quiet){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); o.classList.toggle('wrongsel', inp.checked); }); setTimeout(()=>$$('.opt',box).forEach(o=>o.classList.remove('wrongsel')),900); }
       return ok; },
     lock(){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); const v=+inp.value; inp.disabled=true; inp.checked=correct.has(v); o.classList.toggle('right', correct.has(v)); o.classList.remove('sel','wrongsel'); }); },
-    reset(){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); inp.disabled=false; inp.checked=false; o.classList.remove('right','sel','wrongsel'); }); }
+    reset(){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); inp.disabled=false; inp.checked=false; o.classList.remove('right','sel','wrongsel'); }); },
+    raw(){ return $$('input',box).filter(i=>i.checked).map(i=>+i.value); },
+    setRaw(r){ $$('.opt',box).forEach(o=>{ const inp=$('input',o); inp.checked=(r||[]).includes(+inp.value); o.classList.toggle('sel',inp.checked); }); },
+    answer(){ return optTexts(api.raw()); },
+    rightText(){ return optTexts([...correct]); },
+    freeze(){ $$('input',box).forEach(i=>i.disabled=true); }
   };
+  const optTexts = arr => arr.map(i=>{ const t=plainT(def.opts[i]); return t || ('Bild '+'ABCDEFGH'[order.indexOf(i)]); }).join(' / ');
   wireCommon(el,def,api); return {el,api};
 }
 
@@ -766,9 +1148,14 @@ function numWidget(def, sess){
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter') $('.check',el).click(); });
   const tol = def.tol ?? 0.03;
   const api={
-    check(){ const v=parseNum(inp.value); if(isNaN(v)) return null;
+    check(quiet){ const v=parseNum(inp.value); if(isNaN(v)) return null;
       const ok = def.abs!=null ? Math.abs(v-def.a)<=def.abs : Math.abs(v-def.a) <= Math.abs(def.a)*tol + 1e-12;
-      inp.classList.toggle('bad',!ok); return ok; },
+      if(!quiet) inp.classList.toggle('bad',!ok); return ok; },
+    raw(){ return inp.value; }, setRaw(r){ inp.value = r==null?'':r; },
+    answer(){ return (inp.value||'').trim() + (def.unit?' '+plainT(def.unit):''); },
+    rightText(){ return (def.show || fmt(def.a, def.dec ?? 2)) + (def.unit?' '+plainT(def.unit):''); },
+    tip(r){ return numTip(parseNum(r), def.a); },
+    freeze(){ inp.disabled=true; },
     lock(){ inp.value = def.show || fmt(def.a, def.dec ?? 2); inp.disabled=true; inp.classList.remove('bad'); inp.classList.add('ok'); },
     reset(){ inp.disabled=false; inp.value=''; inp.classList.remove('ok','bad'); }
   };
@@ -795,9 +1182,14 @@ function clozeWidget(def, sess){
   body.appendChild(wrap);
   $$('select',wrap).forEach(s=>sels.push(s));
   const api={
-    check(){ if(sels.some(s=>s.value==='')) return null; let all=true;
-      sels.forEach(s=>{ const ok = s.value===s.dataset.right; s.classList.toggle('bad',!ok); s.classList.toggle('ok',ok); if(!ok) all=false; });
+    check(quiet){ if(sels.some(s=>s.value==='')) return null; let all=true;
+      sels.forEach(s=>{ const ok = s.value===s.dataset.right; if(!quiet){ s.classList.toggle('bad',!ok); s.classList.toggle('ok',ok); } if(!ok) all=false; });
+      if(!all && !quiet){ const n=sels.filter(s=>s.value!==s.dataset.right).length; return {ok:false, msg:`${n} von ${sels.length} Lücken sind falsch (rot markiert).`}; }
       return all; },
+    raw(){ return sels.map(s=>s.value); }, setRaw(r){ sels.forEach((s,i)=>s.value=(r||[])[i]??''); },
+    answer(){ return sels.map(s=>s.value===''?'–':plainT(s.options[s.selectedIndex].text)).join(', '); },
+    rightText(){ return sels.map(s=>{ const o=[...s.options].find(o=>o.value===s.dataset.right); return o?plainT(o.text):''; }).join(', '); },
+    freeze(){ sels.forEach(s=>s.disabled=true); },
     lock(){ sels.forEach(s=>{ s.value=s.dataset.right; s.disabled=true; s.classList.remove('bad'); s.classList.add('ok'); }); },
     reset(){ sels.forEach(s=>{ s.value=''; s.disabled=false; s.classList.remove('ok','bad'); }); }
   };
@@ -892,11 +1284,77 @@ function vocabWidget(def){
   return {el};
 }
 
+/* ---------- Test: jede Frage nur EIN Versuch ---------- */
+const TESTS = [], TEST_OF = {};
+function testDone(t){ return t.ids.every(i => STATE.solved[i] || STATE.revealed[i]); }
+function testStarted(t){ return !!(STATE.tests && STATE.tests[t.id]); }
+function testWidget(def, sess){
+  const el = h('div', {class: 'testbox', id: 't_' + def.id});
+  el.innerHTML = `<div class="thead">📝 ${def.title}</div>
+    <div class="twarn"><b>⚠️ Achtung: Für diesen Test hast du nur EINEN Versuch!</b><br>Jede Frage kannst du nur <b>einmal</b> beantworten. Es gibt keine zweite Chance und keine Hilfe. Ob deine Antworten richtig sind, siehst du erst <b>am Ende</b> – mit einer Übersicht und Tipps. Bleib auf dieser Seite: Andere Apps oder Tabs werden gespeichert.
+    Lerne also zuerst: Lies die Texte, schreibe die Merksätze ins Heft und mache die Übungen 3.1 bis 3.8. Starte den Test erst, wenn du dich <b>sicher</b> fühlst. <span class="en">(only ONE try – start when you are ready)</span></div>
+    <div class="tready"></div>
+    <button class="bigbtn red tstart">📝 Ich bin bereit: Test starten</button>
+    <div class="taway"></div><div class="titems"></div><div class="tresult"></div>`;
+  const items = def.items.map(b => Object.assign({}, b, {once: true, label: b.label || null}));
+  items.forEach(b => { if(b.id && !b.hint && HINTS[b.id]) b.hint = HINTS[b.id]; });
+  const box = $('.titems', el);
+  const t = {id: def.id, sess, ids: [], title: def.title};
+  TESTS.push(t);
+  let n = 0;
+  items.forEach(b => { if(b.id){ n++; b.label = 'Testfrage ' + n; TEST_OF[b.id] = def.id; t.ids.push(b.id); } });
+  renderBlocks(box, items, sess);
+  $('.tstart', el).onclick = () => {
+    const pr = chapterPractice(sess);
+    openModal(`<h2>📝 Test starten?</h2>
+      <p><b>Du hast nur einen Versuch.</b> Jede Frage zählt sofort. <span class="en">(only one try)</span></p>
+      <div class="card"><b>Bist du bereit?</b><ul class="tcheck">
+        <li>${pr.ok ? '✅' : '⚠️'} Lernen und Üben: ⭐ ${pr.got} von ${pr.n} ${pr.ok ? '' : '<span class="errmsg">– noch nicht 80 %!</span>'}</li>
+        <li>✍️ Sind alle Merksätze in deinem Heft?</li><li>🤔 Kannst du die Merksätze ohne Hilfe erklären?</li></ul></div>
+      <label class="trainbox"><input type="checkbox" id="tsOk"> Ja, ich habe gelernt und bin bereit.</label>
+      <p><button class="bigbtn red" id="tsGo" disabled>Test jetzt starten</button><button class="bigbtn gray" id="tsNo">Nein, ich lerne noch</button></p>`);
+    $('#tsOk').onchange = e => $('#tsGo').disabled = !e.target.checked;
+    $('#tsNo').onclick = closeModal;
+    $('#tsGo').onclick = () => { STATE.tests = STATE.tests || {}; STATE.tests[def.id] = {start: new Date().toISOString()}; changed(false); closeModal(); refresh(); setTimeout(() => box.scrollIntoView({behavior: 'smooth', block: 'start'}), 100); };
+  };
+  function refresh(){
+    const st = testStarted(t), done = st && testDone(t);
+    el.classList.toggle('started', st); el.classList.toggle('done', done);
+    $('.tstart', el).style.display = st ? 'none' : '';
+    $('.twarn', el).style.display = done ? 'none' : '';
+    box.style.display = st ? '' : 'none';
+    const pr = chapterPractice(sess);
+    $('.tready', el).innerHTML = st ? '' : `Dein Stand in dieser Sitzung: ⭐ ${pr.got} von ${pr.n} Übungssternen. ${pr.ok ? '👍 Gut vorbereitet!' : 'Tipp: Hol dir zuerst mindestens 80 % der Übungssterne.'}`;
+    const got = t.ids.filter(i => STATE.solved[i]).length;
+    const o = (STATE.tests || {})[def.id] || {};
+    $('.taway', el).innerHTML = (st && o.away) ? `<div class="awaynote">👀 Du hast die Seite während des Tests <b>${o.away}-mal</b> verlassen (${mmss(o.awaySec)} min). Deine Lehrkraft sieht das.</div>` : '';
+    if(st && !done && testAnswered(t)) setTimeout(() => testFinalize(def.id), 0);
+    if(done){
+      const pct = got / t.ids.length;
+      const tsec = o.sec || t.ids.reduce((s, i) => s + ((STATE.qt && STATE.qt[i]) ? STATE.qt[i][0] : 0), 0);
+      const plan = t.ids.reduce((s, i) => s + (QREG[i] ? QREG[i].est : 60), 0);
+      $('.tresult', el).innerHTML = `<div class="tres ${pct >= .8 ? 'good' : pct >= .5 ? 'mid' : 'low'}"><b>Test fertig: ${got} von ${t.ids.length} richtig.</b> ${pct >= .8 ? '🏆 Ausgezeichnet!' : pct >= .5 ? '👍 Gut gemacht! Schau dir die falschen Fragen unten noch einmal an.' : '💪 Lies die Merksätze noch einmal und schau dir die Tipps unten an.'}
+        ${tsec ? `<div class="small">⏱ Zeit: ${mmss(tsec)} min (geplant: ca. ${mmss(plan)} min)</div>` : ''}</div>` + testOverview(t);
+    } else $('.tresult', el).innerHTML = st ? `<div class="small">Gespeichert: ${t.ids.filter(i => STATE.solved[i] || STATE.revealed[i] || STATE.tans[i]).length} von ${t.ids.length} Antworten. Das Ergebnis siehst du, wenn alle Fragen beantwortet sind.</div>` : '';
+  }
+  REFRESHERS.push(refresh);
+  TEST_REFRESH[def.id] = refresh;
+  return el;
+}
+const TEST_REFRESH = {};
+
+function chapterPractice(sid){
+  const ids = ORDER.filter(i => sessOf(i) === sid && !TEST_OF[i] && QREG[i] && QREG[i].def && ['mc','num','cloze','match'].includes(QREG[i].def.t));
+  const got = ids.filter(i => STATE.solved[i]).length;
+  return {got, n: ids.length, ok: ids.length > 0 && got >= Math.ceil(.8 * ids.length)};
+}
+
 /* ---------- rendering of a block list ---------- */
 const REFRESHERS=[];
 function renderBlocks(container, blocks, sess){
   blocks.forEach(b=>{
     let w=null;
+    if(b.id && !b.hint && HINTS[b.id]) b.hint = HINTS[b.id];
     switch(b.t){
       case 'h2': container.appendChild(h('h2',b.id?{id:b.id}:{}, b.text)); break;
       case 'h3': container.appendChild(h('h3',{}, b.text)); break;
@@ -907,11 +1365,12 @@ function renderBlocks(container, blocks, sess){
       case 'cloze': w=clozeWidget(b,sess); break;
       case 'match': w=matchWidget(b,sess); break;
       case 'heft': w=heftWidget(b); break;
+      case 'test': container.appendChild(testWidget(b,sess)); break;
       case 'custom': { const d=h('div'); container.appendChild(d); b.render(d); break; }
     }
     if(w){
       if(QREG[b.id]) console.error('duplicate id', b.id);
-      QREG[b.id]={api:w.api}; ORDER.push(b.id);
+      QREG[b.id]={api:w.api, el:w.el, def:b, est:estOf(b), once:!!b.once}; ORDER.push(b.id);
       container.appendChild(w.el); REFRESHERS.push(w.api.refresh);
     }
   });
@@ -1741,6 +2200,7 @@ const S3 = [
    explain:'Wenn man den Eisenstab bewegt oder einen Magneten wegnimmt, ändert sich das Magnetfeld in der Spule → Spannung.'},
 
  {t:'h2', text:'3.9 Abschlusstest', id:'s3-t'},
+ {t:'test', id:'s3-T', title:'Abschlusstest Sitzung 3: Induktion', items:[
  {t:'match', id:'s3-v1', q:'Wörter: Was heißt das auf Englisch?', pairs:[['induzieren','to induce'],['das Vorzeichen','sign (+ / –)'],['die Wechselspannung','alternating voltage'],['der Eisenkern','iron core'],['der Schalter','switch'],['der Betrag','magnitude']]},
  {t:'match', id:'s3-v2', q:'Wörter: Was heißt das auf Deutsch?', reverse:true, pairs:[['das Spannungsmessgerät','voltmeter'],['der Stabmagnet','bar magnet'],['die Gleichspannung','direct voltage'],['relativ zueinander','relative to each other'],['die Feldlinie','field line'],['das Kraftwerk','power station']]},
  {t:'cloze', id:'s3-t1', q:'Der wichtigste Satz – ergänze.', lines:['Eine Spannung wird induziert, wenn sich das {*Magnetfeld|Material|Messgerät} in der Spule {*ändert|nicht ändert}.','Ist das Feld {*konstant|stark}, dann gibt es keine Induktionsspannung.']},
@@ -1752,7 +2212,8 @@ const S3 = [
    graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,pts:[[0,0.5],[4,3.5]],noXnum:true,noYnum:true}),
    graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,pts:[[0,3.5],[4,0.5]],noXnum:true,noYnum:true}),
    graph({x:[0,4,1],y:[0,4,1],xl:'t',yl:'B',w:220,h:150,ml:30,series:[{fn:t=>2+1.5*Math.sin(t*2)}],noXnum:true,noYnum:true})], a:0,
-   explain:'Nur der konstante Graph: B ändert sich nicht → keine Spannung. Auch wenn B groß ist!'},
+   explain:'Nur der konstante Graph: B ändert sich nicht → keine Spannung. Auch wenn B groß ist!'}
+ ]},
  {t:'html', html:`<div class="box merke"><div class="boxtitle">✅ Zusammenfassung Sitzung 3</div>
   <ul><li>Eine Spannung wird <b>induziert</b>, wenn sich das <b>Magnetfeld in der Spule ändert</b> (die Anzahl der Feldlinien durch die Spule).</li>
   <li>Wie die Änderung passiert, ist egal: Magnet bewegen, Spule bewegen, Spule drehen, Strom im Elektromagneten ändern …</li>
@@ -1979,7 +2440,7 @@ function init(){
   Cloud.init({
     app:APP_ID,
     titel:'Physik 9: Magnetfeld & Induktion',
-    getState:()=>({name:STATE.name,solved:STATE.solved,wrong:STATE.wrong,revealed:STATE.revealed,photos:photosMeta(false),created:STATE.created,tampered:STATE.tampered||undefined,foreign:STATE.foreign||undefined}),
+    getState:()=>({name:STATE.name,solved:STATE.solved,wrong:STATE.wrong,revealed:STATE.revealed,tests:STATE.tests,tans:STATE.tans,qt:STATE.qt,away:STATE.away,photos:photosMeta(false),created:STATE.created,tampered:STATE.tampered||undefined,foreign:STATE.foreign||undefined}),
     photos:()=>Object.keys(STATE.photos||{}).filter(k=>STATE.photos[k].src).map(k=>({key:k, ph:STATE.photos[k]})),
     onPhotos:()=>{ backupToBrowser(); refreshPhotos(); },
     hasProgress:()=>starCount()>0||wrongCount()>0,
@@ -1999,6 +2460,7 @@ const SECTIONS=[];
   const push=()=>{ if(cur.ids.length) SECTIONS.push(cur); };
   blocks.forEach(b=>{
     if(b.t==='h2'){ push(); const m=String(b.text).match(/^(\d+\.\d+)\s+(.*)$/); cur={key:b.id||(sid+'-'+SECTIONS.length),label:m?m[1]:b.text,title:b.text,ids:[]}; }
+    else if(b.t==='test') b.items.forEach(x=>x.id&&cur.ids.push(x.id));
     else if(b.id && ['mc','num','cloze','match','heft'].includes(b.t)) cur.ids.push(b.id);
   });
   push();
@@ -2020,6 +2482,11 @@ function cloudSummary(){
     extra:{s1:['Sitzung 1 ⭐',sess(1)],s2:['Sitzung 2 ⭐',sess(2)],s3:['Sitzung 3 ⭐',sess(3)],
       heft:['✍️ Merksätze im Heft',heft.filter(i=>STATE.solved[i]).length+' / '+heft.length],
       fotos:['📷 Merksatz-Fotos',PHOTO_KEYS.filter(k=>STATE.photos[k]&&STATE.photos[k].fid).length+' / '+PHOTO_KEYS.length],
+      ...Object.fromEntries(TESTS.map(t=>{ const o=(STATE.tests||{})[t.id]||{};
+        const v = testDone(t) ? t.ids.filter(i=>STATE.solved[i]).length+' / '+t.ids.length+(o.sec?' · ⏱'+mmss(o.sec):'')+(o.away?' · 👀'+o.away:'') : (testStarted(t)?'begonnen'+(o.away?' · 👀'+o.away:''):'–');
+        return ['test'+t.sess,['📝 Abschlusstest', v]]; })),
+      away:['🚪 Seite verlassen', (STATE.away&&STATE.away.n) ? STATE.away.n+'× · '+mmss(STATE.away.sec) : '–'],
+      slow:['⏰ zu langsam', (()=>{ const q=STATE.qt||{}, k=Object.keys(q); const tot=k.reduce((s,i)=>s+q[i][0],0); return k.length ? k.filter(i=>q[i][1]===2).length+' von '+k.length+' · Σ '+mmss(tot) : '–'; })()],
       rv:['👀 Lösung angezeigt',String(rv)],hinweis:['⚠ Hinweis',note]}};
 }
 document.addEventListener('DOMContentLoaded', init);
