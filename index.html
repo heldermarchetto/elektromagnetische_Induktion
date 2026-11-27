@@ -931,6 +931,56 @@ function awayWhere(){
   if(t) return {key: t.id, test: t};
   return {key: (document.querySelector('#tabs button.active') || {}).dataset?.p || ''};
 }
+/* ---------- Kamera / Dateiauswahl: zählt NICHT als „Seite verlassen“ ----------
+   Pause beginnt beim Tippen auf den Foto-Knopf. Sie endet, sobald das Foto zurück ist („change“/„cancel“)
+   oder die Seite wieder sichtbar ist – plus ein paar Sekunden. Wer länger als 3 Minuten weg ist, wird trotzdem gemeldet. */
+const CAM_MAX = 180000;
+let CAM_UNTIL = 0, CAM_HID = 0;
+function camOpen(inp) {
+  CAM_UNTIL = Date.now() + CAM_MAX; CAM_HID = 0;
+  if (inp && !inp._camHook) { inp._camHook = 1; const end = () => { CAM_UNTIL = Date.now() + 5000; }; inp.addEventListener('change', end); inp.addEventListener('cancel', end); }
+}
+const camActive = () => Date.now() < CAM_UNTIL && !(CAM_HID && Date.now() - CAM_HID > CAM_MAX);
+(function () {
+  const orig = HTMLInputElement.prototype.click;
+  HTMLInputElement.prototype.click = function () { if (this.type === 'file') camOpen(this); return orig.apply(this, arguments); };
+  const hit = e => { const t = e.target; if (!t || !t.closest) return; const i = t.closest('input[type=file]') || (t.closest('label') && t.closest('label').querySelector('input[type=file]')); if (i) camOpen(i); };
+  ['touchstart', 'pointerdown', 'mousedown', 'click'].forEach(ev => document.addEventListener(ev, hit, true));
+  const back = () => { if (Date.now() < CAM_UNTIL) CAM_UNTIL = Math.min(CAM_UNTIL, Date.now() + 8000); };   // wieder auf der Seite → Schutz endet bald
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (Date.now() < CAM_UNTIL && !CAM_HID) CAM_HID = Date.now(); } else back(); }, true);
+  window.addEventListener('focus', back, true);
+})();
+
+/* ---------- Pop-up nach dem Zurückkommen: 👀 – wird gemeldet ---------- */
+function awayAlarm(sec, inTest) {
+  if (!document.getElementById('awayCss')) {
+    const st = document.createElement('style'); st.id = 'awayCss';
+    st.textContent = `#awayOv{position:fixed;inset:0;z-index:99999;background:rgba(60,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+#awayBox{background:#fff;border:6px solid #d62828;border-radius:22px;max-width:460px;width:100%;padding:22px 22px 18px;text-align:center;font-family:inherit;color:#222;animation:awayBlink .8s ease-in-out 6;box-shadow:0 0 0 0 rgba(214,40,40,.7)}
+#awayBox .eyes{font-size:64px;line-height:1;margin-bottom:8px;animation:awayEyes 1.2s ease-in-out infinite}
+#awayBox h2{margin:4px 0 8px;color:#b00020;font-size:1.45rem}
+#awayBox p{margin:6px 0;font-size:1.05rem}
+#awayBox .en{color:#777;font-size:.9rem}
+#awayBox button{margin-top:12px;background:#d62828;color:#fff;border:0;border-radius:12px;padding:12px 20px;font-size:1.05rem;font-weight:700;cursor:pointer}
+@keyframes awayBlink{0%,100%{border-color:#d62828;background:#fff;box-shadow:0 0 0 0 rgba(214,40,40,.7)}50%{border-color:#ff8a8a;background:#ffe3e3;box-shadow:0 0 0 14px rgba(214,40,40,0)}}
+@keyframes awayEyes{0%,100%{transform:translateX(-10px)}50%{transform:translateX(10px)}}
+@media (prefers-reduced-motion:reduce){#awayBox,#awayBox .eyes{animation:none}}`;
+    document.head.appendChild(st);
+  }
+  const old = document.getElementById('awayOv'); if (old) old.remove();
+  const s = Math.max(0, Math.round(sec || 0)), t = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const ov = document.createElement('div'); ov.id = 'awayOv';
+  ov.innerHTML = `<div id="awayBox" role="alertdialog" aria-modal="true"><div class="eyes">👀👀</div>
+    <h2>Du hast die Seite verlassen!</h2>
+    <p>Du warst <b>${t} min</b> ${inTest ? '<b>während des Tests</b> ' : ''}in einem anderen Tab oder in einer anderen App.</p>
+    <p><b>Das wird deiner Lehrkraft gemeldet.</b></p>
+    <p class="en">You left this page${inTest ? ' during the test' : ''}. This will be reported to your teacher.</p>
+    <button type="button">OK – ich bleibe auf dieser Seite</button></div>`;
+  ov.querySelector('button').onclick = () => ov.remove();
+  document.body.appendChild(ov);
+  try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) { }
+}
+
 function awayStart(hidden){
   if(AWAY_IGNORE) return;
   if(hidden) AWAY_HID = true;
@@ -943,7 +993,7 @@ function awayEnd(){
   if(document.visibilityState === 'hidden' || !document.hasFocus()) return;
   const sec = (Date.now() - AWAY_T0) / 1000, hid = AWAY_HID;
   AWAY_T0 = 0; AWAY_HID = false;
-  if(AWAY_IGNORE){ AWAY_IGNORE = false; return; }
+  if (AWAY_IGNORE || camActive()) { AWAY_IGNORE = false; return; }
   if(sec < (hid ? 1 : 3)) return;
   const A = STATE.away = STATE.away || {n: 0, sec: 0, log: []};
   A.n++; A.sec = Math.round(A.sec + sec);
@@ -951,12 +1001,11 @@ function awayEnd(){
   const t = TESTS.find(x => x.id === AWAY_WHERE);
   if(t && STATE.tests[t.id]){ const o = STATE.tests[t.id]; o.away = (o.away || 0) + 1; o.awaySec = Math.round((o.awaySec || 0) + sec); if(TEST_REFRESH[t.id]) TEST_REFRESH[t.id](); }
   changed(false);
-  toast(`👀 Du hast die Seite ${t ? '<b>während des Tests</b> ' : ''}verlassen (${mmss(sec)} min). Das wird gespeichert.<br><span class="en">Please stay on this page – no other apps.</span>`, 5000);
+  awayAlarm(sec, !!t);
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') awayStart(true); else setTimeout(awayEnd, 300); });
 window.addEventListener('blur', () => awayStart(false));
 window.addEventListener('focus', () => setTimeout(awayEnd, 300));
-document.addEventListener('click', e => { if(e.target.closest && e.target.closest('input[type=file],label.fbtn,.hfoto label')) { AWAY_IGNORE = true; setTimeout(() => { if(!AWAY_T0) AWAY_IGNORE = false; }, 60000); } }, true);
 
 /* ---------- Uhr pro Aufgabe ---------- */
 const QT = (() => {
